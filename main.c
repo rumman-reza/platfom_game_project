@@ -1,6 +1,6 @@
 #include"raylib.h"
 #include "raymath.h"
-
+#include<stdbool.h>
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
@@ -13,6 +13,7 @@
 #define jumpSpeed 800.0f
 #define gravity 1200.0f
 #define MaxChunkNum 5
+#define SPRITE_SCALE 3.0f
 
 typedef enum gameScreen{
     MENU=1,GAME=0
@@ -27,24 +28,74 @@ typedef struct groundChunk
 typedef struct Player{
     float height;
     float width;
-
+    bool facing_left;
     Vector2 position;
     Vector2 velocity;
     Vector2 initial_position;
     bool isgrounded;
 }Player;
 
+
+typedef struct texture{
+//background elements
+    Texture2D Background;
+    Texture2D Woods_first;
+    Texture2D Woods_second;
+    Texture2D woods_third;
+    Texture2D Woods_fourth;
+
+// player textures    
+    Texture2D idle;
+    Texture2D running;
+    Texture2D dash;
+    Texture2D jump;
+    Texture2D die;
+}tex;
+
+typedef struct animation{
+    Texture2D tex;
+    int frameWidth;
+    int frameHeight;
+    int framecount;
+    int currentframe;
+    float frameduration;
+    float frametimer;
+
+} anim;
+
+typedef enum animations{
+     player_idle,
+     player_running,
+     player_jump,
+     player_dash,
+     player_die,
+     player_animations_number,
+     background1,
+     background2,
+     background3,
+     background4,
+     background5
+
+} anim_name;
+
 typedef struct gameState
 {
     gamescreen currentscreen;
-    Player player;
-    Camera2D camera;
 
+    Player player;
+    anim player_animations[player_animations_number];
+    anim_name current_player_anim_name;
+
+
+    Camera2D camera;
     //ground stuff
     groundChunk gchunk[MaxChunkNum];
     float next_spawn_point;
     int chunk_index;
 
+    //background element
+    Texture2D background[5];
+    float background_spawnpoint;
     // restricting left movement
     float clamp_left;
 
@@ -52,15 +103,21 @@ typedef struct gameState
 
 
 void drawGame(GS* gs);
-void initGame(GS* gs);
-void updateGame(GS* gs, float dt);
-void updateGameplay(GS* gs,float dt);
+void initGame(GS* gs, tex* tex, anim* anim);
+void updateGame(GS* gs,anim* anim, float dt);
+void updateGameplay(GS* gs,anim* anim,float dt);
 Rectangle getPlayerRect(GS* gs);
-void playerMovement(GS* gs,float dt);
+void playerMovement(GS* gs,anim* anim,float dt);
 void Gravity(GS* gs,float dt);
 void cameraMovement(GS* gs);
 void checkBoundary(GS* gs);
 void updateGround(GS *gs);
+void loadTexture(tex* tex, GS* gs);
+void loadAnimation(GS* gs,tex* tex, anim* anim);
+void updateAnimation(GS* gs,float dt);
+void drawPlayerSprite(GS* gs);
+void setAnimation(GS* gs,anim_name name);
+Texture2D LoadPixelTexture(const char *path);
 
 
 int main(){
@@ -69,12 +126,14 @@ int main(){
     SetTargetFPS(60);
     
     GS gs={0};
-    initGame(&gs);
+    tex tex={0};
+    anim anim = {0};
+    initGame(&gs,&tex,&anim);
     
     while(!WindowShouldClose()){
         
         float dt = GetFrameTime();
-        updateGame(&gs,dt);
+        updateGame(&gs,&anim,dt);
         
         BeginDrawing();
         
@@ -97,14 +156,21 @@ Rectangle drawPlayerRect(GS* gs){
     return (Rectangle){gs->player.position.x,gs->player.position.y,gs->player.width,gs->player.height};
 }
 
-void initGame(GS* gs){
+void initGame(GS* gs,tex* tex,anim* anim){
+    
     float ground_y = s_height*3.7f/4;
     float ground_height = s_height-ground_y;
     SetMouseCursor(MOUSE_CURSOR_CROSSHAIR);
 
+// load textures
+    loadTexture(tex,gs);
+// load animations
+    loadAnimation(gs,tex,anim);
+
 //set player
-    gs->player.height=140;
-    gs->player.width=80;
+    gs->player.height = gs->player_animations[player_idle].frameHeight * SPRITE_SCALE;
+    gs->player.width  = gs->player_animations[player_idle].frameWidth  * SPRITE_SCALE;
+
     gs->player.initial_position.x=s_width/2.0f;
     gs->player.initial_position.y=ground_y-gs->player.height;
 
@@ -126,11 +192,13 @@ void initGame(GS* gs){
         gs->gchunk[i].groundChunkRect = (Rectangle){gs->next_spawn_point,ground_y,s_width,ground_height};
         gs->next_spawn_point+=s_width;
     }
+
+
 }
 
-void updateGame(GS* gs,float dt){
+void updateGame(GS* gs,anim* anim,float dt){
     switch(gs->currentscreen){
-        case GAME: updateGameplay(gs,dt); break;
+        case GAME: updateGameplay(gs,anim,dt); break;
     }
 }
 
@@ -152,17 +220,19 @@ void groundedCheck(GS* gs,float dt){
     }
 }
 
-void updateGameplay(GS* gs,float dt){
-
+void updateGameplay(GS* gs,anim* anim,float dt){
+    updateAnimation(gs,dt);
     updateGround(gs);
     Gravity(gs,dt);
-    playerMovement(gs,dt);
+    playerMovement(gs,anim,dt);
     checkBoundary(gs);
     groundedCheck(gs,dt);
     cameraMovement(gs);
 }
 
 void drawGame(GS* gs){
+//drawing background elements
+
 
 //drawing the ground rectangles;
     for(int i=0;i<MaxChunkNum;i++){
@@ -171,20 +241,38 @@ void drawGame(GS* gs){
 
     }
 
-    DrawRectangleRec(drawPlayerRect(gs),GetColor(0xFF9A00FF));
-    DrawRectangleLinesEx(drawPlayerRect(gs),3,BLACK);
+
+//drawing player sprite
+    drawPlayerSprite(gs);
 }
 
-void playerMovement(GS* gs,float dt){
+void playerMovement(GS* gs,anim* anim,float dt){
 
     //check button input
-    if(IsKeyDown(KEY_D) && gs->player.isgrounded) gs->player.velocity.x = pSpeed;
-    else if(IsKeyDown(KEY_D) && !gs->player.isgrounded) gs->player.velocity.x = pSpeedAir;
+    if(IsKeyDown(KEY_D) && gs->player.isgrounded){ 
+        gs->player.velocity.x = pSpeed;
+        gs->player.facing_left=false;
+        setAnimation(gs,player_running);
+    }
+    else if(IsKeyDown(KEY_D) && !gs->player.isgrounded){
+        gs->player.velocity.x = pSpeedAir;
+        gs->player.facing_left=false;
+    }
     
-    else if(IsKeyDown(KEY_A)&& gs->player.isgrounded) gs->player.velocity.x = -pSpeed;
-    else if(IsKeyDown(KEY_A) && !gs->player.isgrounded) gs->player.velocity.x = -pSpeedAir;
+    else if(IsKeyDown(KEY_A)&& gs->player.isgrounded) {
+        gs->player.velocity.x = -pSpeed;
+        gs->player.facing_left=true;
+        setAnimation(gs,player_running);
+    }
+    else if(IsKeyDown(KEY_A) && !gs->player.isgrounded){
+        gs->player.velocity.x = -pSpeedAir;
+        gs->player.facing_left=true;
+    }
 
-    else gs->player.velocity.x=0;
+    else{ 
+        gs->player.velocity.x=0;
+        if(gs->player.isgrounded) setAnimation(gs,player_idle);
+    }
 
 
     if(IsKeyPressed(KEY_SPACE) && gs->player.isgrounded){
@@ -212,4 +300,93 @@ void updateGround(GS* gs){
         gs->next_spawn_point += s_width;
         gs->chunk_index = (gs->chunk_index+1) % MaxChunkNum;
     }
+}
+
+void loadTexture(tex* tex, GS* gs){
+    tex->idle = LoadPixelTexture("assets/sprites/Idle.png");
+    tex->running = LoadPixelTexture("assets/sprites/Run.png");
+    tex->jump = LoadPixelTexture("assets/sprites/JumpAndFall.png");
+    tex->dash = LoadPixelTexture("assets/sprites/Dash.png");
+    tex->die = LoadPixelTexture("assets/sprites/Die.png");
+
+
+    tex->Background = LoadPixelTexture("assets/background_elements/BACKGROUND.png");
+    tex->Woods_first = LoadPixelTexture("assets/background_elements/WOODSFirst.png");
+    tex->Woods_second = LoadPixelTexture("assets/background_elements/WOODSSecond.png");
+    tex->woods_third = LoadPixelTexture("assets/background_elements/WOODSThird.png");
+    tex->Woods_fourth = LoadPixelTexture("assets/background_elements/WOODSFourth.png");
+    
+    gs->background[background1-background1] = tex->Background;
+    gs->background[background2-background1] = tex->Woods_first; 
+    gs->background[background3-background1] = tex->Woods_second;    
+    gs->background[background4-background1] = tex->woods_third;
+    gs->background[background5-background1] = tex->Woods_fourth;
+
+}
+
+void loadAnimation(GS* gs,tex* tex,anim* anim){
+
+    gs->player_animations[player_idle].tex = tex->idle;
+    gs->player_animations[player_idle].framecount = 1;
+    gs->player_animations[player_idle].frameduration = 0.1f;
+    gs->player_animations[player_idle].frameHeight = gs->player_animations[player_idle].tex.height;
+    gs->player_animations[player_idle].frameWidth = gs->player_animations[player_idle].tex.width/gs->player_animations[player_idle].framecount;
+
+    gs->player_animations[player_running].tex = tex->running;
+    gs->player_animations[player_running].framecount = 8;
+    gs->player_animations[player_running].frameduration = 0.08f;
+    gs->player_animations[player_running].frameHeight = gs->player_animations[player_running].tex.height;
+    gs->player_animations[player_running].frameWidth = gs->player_animations[player_running].tex.width/gs->player_animations[player_running].framecount;
+
+    gs->player_animations[player_jump].tex = tex->jump;
+    gs->player_animations[player_dash].tex = tex->dash;
+    gs->player_animations[player_die].tex = tex->die;
+
+
+    gs->current_player_anim_name = player_idle;
+
+}
+void updateAnimation(GS* gs,float dt){
+    gs->player_animations[gs->current_player_anim_name].frametimer += dt;
+
+    while(gs->player_animations[gs->current_player_anim_name].frametimer>=gs->player_animations[gs->current_player_anim_name].frameduration){
+        gs->player_animations[gs->current_player_anim_name].frametimer-=gs->player_animations[gs->current_player_anim_name].frameduration;
+        gs->player_animations[gs->current_player_anim_name].currentframe = (gs->player_animations[gs->current_player_anim_name].currentframe + 1)%(gs->player_animations[gs->current_player_anim_name].framecount);
+    }    
+}
+
+void drawPlayerSprite(GS* gs){
+       anim *a = &gs->player_animations[gs->current_player_anim_name];
+
+    Rectangle source = {
+        .x = a->currentframe * a->frameWidth,
+        .y = 0,
+        .width  = (gs->player.facing_left) ? -a->frameWidth : a->frameWidth,
+        .height = a->frameHeight
+    };
+    Rectangle dest = {
+        .x = gs->player.position.x,
+        .y = gs->player.position.y,
+        .width  = a->frameWidth  * SPRITE_SCALE,
+        .height = a->frameHeight * SPRITE_SCALE
+    };
+    DrawTexturePro(a->tex, source, dest, (Vector2){0,0}, 0.0f, WHITE);
+}
+
+void setAnimation(GS* gs,anim_name name){
+    if(gs->current_player_anim_name != name){
+        gs->current_player_anim_name = name;
+        gs->player_animations[name].currentframe=0;
+        gs->player_animations[name].frametimer=0;
+    }
+}
+Texture2D LoadPixelTexture(const char *path) {
+    Texture2D t = LoadTexture(path);
+    SetTextureFilter(t, TEXTURE_FILTER_POINT);
+    return t;
+}
+
+
+void drawBackground(tex* tex,GS* gs){
+    
 }
