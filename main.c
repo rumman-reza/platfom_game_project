@@ -10,7 +10,7 @@
 #define s_width GetScreenWidth()
 #define pSpeed 1000.0f
 #define pSpeedAir 600.0f
-#define jumpSpeed 800.0f
+#define jumpSpeed 500.0f
 #define gravity 1200.0f
 #define MaxChunkNum 5
 #define SPRITE_SCALE 3.0f
@@ -78,6 +78,12 @@ typedef enum animations{
 
 } anim_name;
 
+typedef struct background{
+    Texture2D tex[5];
+    Rectangle source;
+    Rectangle dest;
+} bglayer;
+
 typedef struct gameState
 {
     gamescreen currentscreen;
@@ -94,8 +100,9 @@ typedef struct gameState
     int chunk_index;
 
     //background element
-    Texture2D background[5];
+    bglayer bg[MaxChunkNum];
     float background_spawnpoint;
+    int background_index;
     // restricting left movement
     float clamp_left;
 
@@ -118,6 +125,9 @@ void updateAnimation(GS* gs,float dt);
 void drawPlayerSprite(GS* gs);
 void setAnimation(GS* gs,anim_name name);
 Texture2D LoadPixelTexture(const char *path);
+void drawBackground(GS* gs);
+void unloadTexture(tex* tex);
+void updateBackground(GS* gs);
 
 
 int main(){
@@ -147,7 +157,7 @@ int main(){
 
         EndDrawing();
     }
-    
+    unloadTexture(&tex);
     CloseWindow();
     
 }
@@ -178,21 +188,39 @@ void initGame(GS* gs,tex* tex,anim* anim){
     gs->player.position.y=ground_y-gs->player.height;
   
 //set camera 
-    gs->camera.offset = (Vector2){s_width/2.0f,s_height/2.0f};
+    gs->camera.offset = (Vector2){s_width/2.0f,0.0f};
     gs->camera.rotation = 0.0f;
     gs->camera.zoom = 1.0f;
 
-    gs->camera.target = (Vector2){gs->player.position.x,gs->player.position.y};
+    gs->camera.target = (Vector2){gs->player.position.x,0.0f};
     gs->clamp_left = 0.0f;
 // setup initial Ground
-    gs->next_spawn_point=0;
+    gs->next_spawn_point=-s_width;
     gs->chunk_index=0;
 
     for(int i=0;i<MaxChunkNum;i++){
         gs->gchunk[i].groundChunkRect = (Rectangle){gs->next_spawn_point,ground_y,s_width,ground_height};
         gs->next_spawn_point+=s_width;
     }
+// setup background
 
+    gs->background_spawnpoint=-s_width;
+    gs->chunk_index=0;
+    for(int i=0;i<MaxChunkNum;i++){
+        gs->bg[i].source=(Rectangle){
+            .x = 0,
+            .y=0,
+            .height=gs->bg[0].tex[0].height,
+            .width=gs->bg[0].tex[0].width
+        };
+        gs->bg[i].dest=(Rectangle){
+            .x=gs->background_spawnpoint,
+            .y=-gs->gchunk[0].groundChunkRect.height,
+            .height=gs->bg[0].tex[0].height*SPRITE_SCALE*1.5f,
+            .width=gs->bg[0].tex[0].width*SPRITE_SCALE*1.5f
+        };
+        gs->background_spawnpoint+=gs->bg[0].tex[0].width*SPRITE_SCALE*1.5f;
+    }
 
 }
 
@@ -223,6 +251,7 @@ void groundedCheck(GS* gs,float dt){
 void updateGameplay(GS* gs,anim* anim,float dt){
     updateAnimation(gs,dt);
     updateGround(gs);
+    updateBackground(gs);
     Gravity(gs,dt);
     playerMovement(gs,anim,dt);
     checkBoundary(gs);
@@ -233,6 +262,9 @@ void updateGameplay(GS* gs,anim* anim,float dt){
 void drawGame(GS* gs){
 //drawing background elements
 
+//drawing background elements
+
+    drawBackground(gs);
 
 //drawing the ground rectangles;
     for(int i=0;i<MaxChunkNum;i++){
@@ -240,8 +272,6 @@ void drawGame(GS* gs){
         DrawRectangleLinesEx(gs->gchunk[i].groundChunkRect,3,BLACK);
 
     }
-
-
 //drawing player sprite
     drawPlayerSprite(gs);
 }
@@ -286,7 +316,7 @@ void playerMovement(GS* gs,anim* anim,float dt){
 }
 
 void cameraMovement(GS* gs){
-    gs->camera.target = (Vector2){gs->player.position.x,gs->player.position.y};
+    gs->camera.target = (Vector2){gs->player.position.x,0.0f};
 }
 
 void checkBoundary(GS* gs){
@@ -316,12 +346,13 @@ void loadTexture(tex* tex, GS* gs){
     tex->woods_third = LoadPixelTexture("assets/background_elements/WOODSThird.png");
     tex->Woods_fourth = LoadPixelTexture("assets/background_elements/WOODSFourth.png");
     
-    gs->background[background1-background1] = tex->Background;
-    gs->background[background2-background1] = tex->Woods_first; 
-    gs->background[background3-background1] = tex->Woods_second;    
-    gs->background[background4-background1] = tex->woods_third;
-    gs->background[background5-background1] = tex->Woods_fourth;
-
+    for(int i=0;i<MaxChunkNum;i++){
+        gs->bg[i].tex[background1-background1] = tex->Background;
+        gs->bg[i].tex[background5-background1] = tex->Woods_first; 
+        gs->bg[i].tex[background4-background1] = tex->Woods_second;    
+        gs->bg[i].tex[background3-background1] = tex->woods_third;
+        gs->bg[i].tex[background2-background1] = tex->Woods_fourth;
+    }
 }
 
 void loadAnimation(GS* gs,tex* tex,anim* anim){
@@ -356,7 +387,7 @@ void updateAnimation(GS* gs,float dt){
 }
 
 void drawPlayerSprite(GS* gs){
-       anim *a = &gs->player_animations[gs->current_player_anim_name];
+    anim *a = &gs->player_animations[gs->current_player_anim_name];
 
     Rectangle source = {
         .x = a->currentframe * a->frameWidth,
@@ -380,13 +411,43 @@ void setAnimation(GS* gs,anim_name name){
         gs->player_animations[name].frametimer=0;
     }
 }
+
 Texture2D LoadPixelTexture(const char *path) {
     Texture2D t = LoadTexture(path);
     SetTextureFilter(t, TEXTURE_FILTER_POINT);
     return t;
 }
 
+void updateBackground(GS* gs){
+    float viewing_distance = gs->player.position.x + s_width;
+    while(gs->background_spawnpoint<viewing_distance){
+        gs->bg[gs->background_index].dest.x = gs->background_spawnpoint;
+        gs->background_spawnpoint += gs->bg[0].tex[0].width*SPRITE_SCALE*1.5f;
+        gs->background_index = (gs->background_index+1)%MaxChunkNum;
+    }
 
-void drawBackground(tex* tex,GS* gs){
+}
+
+
+void drawBackground(GS* gs){
     
+    for(int j=0;j<MaxChunkNum;j++){
+        for(int i=0;i<5;i++){
+            DrawTexturePro(gs->bg[j].tex[i],gs->bg[j].source,gs->bg[j].dest,(Vector2){0,0},0.0f,WHITE);
+        }
+    }
+}
+
+
+void unloadTexture(tex* tex){
+    UnloadTexture(tex->Background);
+    UnloadTexture(tex->dash);
+    UnloadTexture(tex->die);
+    UnloadTexture(tex->idle);
+    UnloadTexture(tex->jump);
+    UnloadTexture(tex->running);
+    UnloadTexture(tex->Woods_first);
+    UnloadTexture(tex->Woods_fourth);
+    UnloadTexture(tex->Woods_second);
+    UnloadTexture(tex->woods_third);
 }
