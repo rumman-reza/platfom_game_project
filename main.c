@@ -1,14 +1,15 @@
 #include"raylib.h"
 #include "raymath.h"
 #include<stdbool.h>
+#include<math.h>
 
-
-// need to add player dash and fighting movements
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 
+#define BG_LAYER_COUNT 5
+#define BG_SCALE (SPRITE_SCALE * 1.3f)
 #define s_height GetScreenHeight()
 #define s_width GetScreenWidth()
 #define pSpeed 1000.0f
@@ -21,6 +22,9 @@
 #define dash_speed 2000.0f
 #define dash_duration .3f
 #define dash_cooldowntimer .6f
+
+#define attackduration 1.12f
+#define airattackduration .56f
 #define attackstartframe 3
 #define attackendframe 6    
 
@@ -68,6 +72,7 @@ typedef struct texture{
     Texture2D jumpandfall;
     Texture2D die;
     Texture2D attack1;
+    Texture2D air_attack1;
 }tex;
 
 typedef struct animation{
@@ -89,19 +94,26 @@ typedef enum animations{
      player_dash,
      player_die,
      attack,
+     airattack,
      player_animations_number,
      background1,
      background2,
      background3,
      background4,
-     background5
+     background5,
+     background_layer_number
 
 } anim_name;
 
-typedef struct background{
-    Texture2D tex[5];
+typedef struct parallax_layer{
+    Texture2D tex;
+    float scrollfactor;   // 0 = moves like ground (fast/near), 1 = nearly frozen (far)
+    float offsetX;        // accumulates every frame, unbounded — the fmodf math handles wraparound
     Rectangle source;
-    Rectangle dest;
+} parallax_layer;
+
+typedef struct background{
+    parallax_layer layer[5];
 } bglayer;
 
 typedef struct gameState
@@ -114,15 +126,16 @@ typedef struct gameState
 
 
     Camera2D camera;
+    float last_camera_x;
+
     //ground stuff
     groundChunk gchunk[MaxChunkNum];
     float next_spawn_point;
     int chunk_index;
 
     //background element
-    bglayer bg[MaxChunkNum];
-    float background_spawnpoint;
-    int background_index;
+    parallax_layer bgLayers[BG_LAYER_COUNT];
+
     // restricting left movement
     float clamp_left;
 
@@ -151,7 +164,10 @@ void updateBackground(GS* gs);
 void updateJumpFrame(GS* gs);
 void playerDashUpdate(GS* gs,float dt);
 Rectangle gethitbox(GS* gs);
-void hitting(GS* gs);
+void hitting(GS* gs,float dt);
+void updateParallax(GS* gs,float cameradeltax);
+
+
 
 int main(){
     
@@ -216,6 +232,7 @@ void initGame(GS* gs,tex* tex,anim* anim){
     gs->camera.zoom = 1.0f;
 
     gs->camera.target = (Vector2){gs->player.position.x,0.0f};
+    gs->last_camera_x = gs->camera.target.x;
     gs->clamp_left = 0.0f;
 // setup initial Ground
     gs->next_spawn_point=-s_width;
@@ -226,25 +243,19 @@ void initGame(GS* gs,tex* tex,anim* anim){
         gs->next_spawn_point+=s_width;
     }
 // setup background
-
-    gs->background_spawnpoint=-s_width;
-    gs->chunk_index=0;
-    for(int i=0;i<MaxChunkNum;i++){
-        gs->bg[i].source=(Rectangle){
-            .x = 0,
-            .y=0,
-            .height=gs->bg[0].tex[0].height,
-            .width=gs->bg[0].tex[0].width
+    // setup background layers — farthest (slowest apparent motion) to nearest
+    float bg_scrollfactors[BG_LAYER_COUNT] = {0.1f, 0.25f, 0.45f,0.65f , 0.85f};
+    
+    for(int i=0;i<BG_LAYER_COUNT;i++){
+        parallax_layer *l = &gs->bgLayers[i];
+        l->scrollfactor = bg_scrollfactors[i];
+        l->offsetX = 0.0f;
+        l->source = (Rectangle){
+            .x = 0, .y = 0,
+            .width  = l->tex.width,
+            .height = l->tex.height
         };
-        gs->bg[i].dest=(Rectangle){
-            .x=gs->background_spawnpoint,
-            .y=-gs->gchunk[0].groundChunkRect.height,
-            .height=gs->bg[0].tex[0].height*SPRITE_SCALE*1.5f,
-            .width=gs->bg[0].tex[0].width*SPRITE_SCALE*1.5f
-        };
-        gs->background_spawnpoint+=gs->bg[0].tex[0].width*SPRITE_SCALE*1.5f;
     }
-
 }
 
 void updateGame(GS* gs,anim* anim,float dt){
@@ -273,15 +284,20 @@ void groundedCheck(GS* gs,float dt){
 
 void updateGameplay(GS* gs,anim* anim,float dt){
     updateAnimation(gs,dt);
-    updateBackground(gs);
-    updateGround(gs);
     playerDashUpdate(gs,dt);
     Gravity(gs,dt);
+    hitting(gs,dt);
     playerMovement(gs,anim,dt);
-    checkBoundary(gs);
     updateJumpFrame(gs);
+    checkBoundary(gs);
+    updateGround(gs);
     groundedCheck(gs,dt);
     cameraMovement(gs);
+    
+    float cameradelta = gs->camera.target.x - gs->last_camera_x;
+    updateParallax(gs,cameradelta);
+    gs->last_camera_x = gs->camera.target.x;
+
 }
 
 void drawGame(GS* gs){
@@ -293,8 +309,8 @@ void drawGame(GS* gs){
 
 //drawing the ground rectangles;
     for(int i=0;i<MaxChunkNum;i++){
-        DrawRectangleRec(gs->gchunk[i].groundChunkRect,GetColor(0x224248FF));
-        DrawRectangleLinesEx(gs->gchunk[i].groundChunkRect,3,BLACK);
+        DrawRectangleRec(gs->gchunk[i].groundChunkRect,DARKBROWN);
+        // DrawRectangleLinesEx(gs->gchunk[i].groundChunkRect,3,BLACK);
 
     }
 //drawing player sprite
@@ -302,6 +318,7 @@ void drawGame(GS* gs){
 }
 
 void playerMovement(GS* gs,anim* anim,float dt){
+
 
     if(gs->player.isdashing){ 
         gs->player.position = (Vector2)Vector2Add(gs->player.position,Vector2Scale(gs->player.velocity,dt));
@@ -330,8 +347,8 @@ void playerMovement(GS* gs,anim* anim,float dt){
 
     else{ 
         gs->player.velocity.x=0;
-        if(gs->player.isgrounded) setAnimation(gs,player_idle);
-        else setAnimation(gs,player_jump);
+        if(gs->player.isgrounded && !gs->player.isattacking) setAnimation(gs,player_idle);
+        else if(!gs->player.isgrounded && !gs->player.isattacking)setAnimation(gs,player_jump);
     }
 
 
@@ -377,24 +394,24 @@ void loadTexture(tex* tex, GS* gs){
     tex->jumpandfall = LoadPixelTexture("assets/sprites/JumpAndFall.png");
     tex->dash = LoadPixelTexture("assets/sprites/Dash.png");
     tex->die = LoadPixelTexture("assets/sprites/Die.png");
+    tex->attack1 = LoadPixelTexture("assets/sprites/GroundCombo3.png");
+    tex->air_attack1 = LoadPixelTexture("assets/sprites/AirCombo2.png");
 
+    tex->Background   = LoadPixelTexture("assets/background_elements/BACKGROUND.png");
+    tex->Woods_first  = LoadPixelTexture("assets/background_elements/WOODSFi.png");
+    tex->Woods_second = LoadPixelTexture("assets/background_elements/WOODSSe.png");
+    tex->woods_third  = LoadPixelTexture("assets/background_elements/WOODSTh.png");
+    tex->Woods_fourth = LoadPixelTexture("assets/background_elements/WOODSFo.png");
 
-    tex->Background = LoadPixelTexture("assets/background_elements/BACKGROUND.png");
-    tex->Woods_first = LoadPixelTexture("assets/background_elements/WOODSFirst.png");
-    tex->Woods_second = LoadPixelTexture("assets/background_elements/WOODSSecond.png");
-    tex->woods_third = LoadPixelTexture("assets/background_elements/WOODSThird.png");
-    tex->Woods_fourth = LoadPixelTexture("assets/background_elements/WOODSFourth.png");
-    
-    for(int i=0;i<MaxChunkNum;i++){
-        gs->bg[i].tex[background1-background1] = tex->Background;
-        gs->bg[i].tex[background5-background1] = tex->Woods_first; 
-        gs->bg[i].tex[background4-background1] = tex->Woods_second;    
-        gs->bg[i].tex[background3-background1] = tex->woods_third;
-        gs->bg[i].tex[background2-background1] = tex->Woods_fourth;
-    }
+    gs->bgLayers[0].tex = tex->Background;
+    gs->bgLayers[1].tex = tex->Woods_first;
+    gs->bgLayers[2].tex = tex->Woods_second;
+    gs->bgLayers[3].tex = tex->woods_third;
+    gs->bgLayers[4].tex = tex->Woods_fourth;
 }
 
-void loadAnimation(GS* gs,tex* tex,anim* anim){
+
+void loadAnimation(GS* gs,tex* tex,anim* animt){
 
     gs->player_animations[player_idle].tex = tex->idle;
     gs->player_animations[player_idle].framecount = 1;
@@ -429,6 +446,26 @@ void loadAnimation(GS* gs,tex* tex,anim* anim){
     gs->player_animations[player_dash].frameWidth=  gs->player_animations[player_dash].tex.width/gs->player_animations[player_dash].framecount;
     gs->player_animations[player_dash].looping = false;
 
+
+    anim* attack_ani = &gs->player_animations[attack];
+    attack_ani->tex = tex->attack1;
+    attack_ani->framecount = 14;
+    attack_ani->frameduration = .08f;
+    attack_ani->frameHeight = attack_ani->tex.height;
+    attack_ani->frameWidth = attack_ani->tex.width/attack_ani->framecount;
+    attack_ani->looping = true;
+    attack_ani->timedependent = true;
+
+    anim* air_attack_ani = &gs->player_animations[airattack];
+    air_attack_ani->tex = tex->air_attack1;
+    air_attack_ani->framecount = 7;
+    air_attack_ani->frameduration = .08f;
+    air_attack_ani->frameHeight = air_attack_ani->tex.height;
+    air_attack_ani->frameWidth = air_attack_ani->tex.width/air_attack_ani->framecount;
+    air_attack_ani->looping = true;
+    air_attack_ani->timedependent = true;
+
+    
     gs->player_animations[player_die].tex = tex->die;
 
 
@@ -482,26 +519,31 @@ Texture2D LoadPixelTexture(const char *path) {
     return t;
 }
 
-void updateBackground(GS* gs){
-    float viewing_distance = gs->player.position.x + s_width;
-    while(gs->background_spawnpoint<viewing_distance){
-        gs->bg[gs->background_index].dest.x = gs->background_spawnpoint;
-        gs->background_spawnpoint += gs->bg[0].tex[0].width*SPRITE_SCALE*1.5f;
-        gs->background_index = (gs->background_index+1)%MaxChunkNum;
-    }
-
-}
-
 
 void drawBackground(GS* gs){
-    
-    for(int j=0;j<MaxChunkNum;j++){
-        for(int i=0;i<5;i++){
-            DrawTexturePro(gs->bg[j].tex[i],gs->bg[j].source,gs->bg[j].dest,(Vector2){0,0},0.0f,WHITE);
+    float groundTop = gs->gchunk[0].groundChunkRect.y;
+
+    for(int i=0;i<BG_LAYER_COUNT;i++){
+        parallax_layer *l = &gs->bgLayers[i];
+        float texWidth  = l->tex.width  * BG_SCALE;
+        float texHeight = l->tex.height * BG_SCALE;
+
+        float startX = fmodf(l->offsetX, texWidth);
+        if (startX > 0) startX -= texWidth;
+
+        int tilesNeeded = (int)(s_width / texWidth) + 2;
+
+        for(int t=0; t<tilesNeeded; t++){
+            Rectangle dest = {
+                .x = startX + t*texWidth + gs->camera.target.x - gs->camera.offset.x,
+                .y = groundTop - texHeight,
+                .width  = texWidth,
+                .height = texHeight
+            };
+            DrawTexturePro(l->tex, l->source, dest, (Vector2){0,0}, 0.0f, WHITE);
         }
     }
 }
-
 
 void unloadTexture(tex* tex){
     UnloadTexture(tex->Background);
@@ -510,6 +552,7 @@ void unloadTexture(tex* tex){
     UnloadTexture(tex->idle);
     UnloadTexture(tex->jumpandfall);
     UnloadTexture(tex->running);
+    UnloadTexture(tex->attack1);
     UnloadTexture(tex->Woods_first);
     UnloadTexture(tex->Woods_fourth);
     UnloadTexture(tex->Woods_second);
@@ -549,13 +592,33 @@ Rectangle gethitbox(GS* gs){
     };
     return hitbox;
 }
-void hitting(GS* gs){
+void hitting(GS* gs,float dt){
     Player* p = &gs->player;
     anim* a = &gs->player_animations[gs->current_player_anim_name];
-    if(IsMouseButtonPressed && !p->isattacking){
+    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !p->isattacking && !p->isdashing && p->isgrounded){
+        p->isattacking = true;
+        p->hitduration = attackduration;
         setAnimation(gs,attack);
+    }else if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !p->isattacking && !p->isdashing && !p->isgrounded){
+        p->isattacking = true;
+        p->hitduration = airattackduration;
+        setAnimation(gs,airattack);
+    }
+    if(p->isattacking){
+        p->hitduration-=dt;
         if(attackstartframe<= a->currentframe && a->currentframe <= attackendframe){
-            
+            Rectangle hitbox = gethitbox(gs);
+            // check collision of hitbox with enemy rectangle then decrease enemy health
         }
+        if(p->hitduration<=0){
+            p->isattacking = false;
+            setAnimation(gs,player_idle);
+        }
+    }
+}
+
+void updateParallax(GS* gs,float cameradeltax){
+    for(int i=0;i<BG_LAYER_COUNT;i++){
+        gs->bgLayers[i].offsetX -= cameradeltax * gs->bgLayers[i].scrollfactor;
     }
 }
