@@ -8,21 +8,21 @@
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
 
-#define BG_LAYER_COUNT 5
+#define BG_LAYER_COUNT 6
 #define BG_SCALE (SPRITE_SCALE * 1.3f)
 #define s_height GetScreenHeight()
 #define s_width GetScreenWidth()
 #define pSpeed 1000.0f
+#define pAttackMoveSpeed 500.0f
 #define pSpeedAir 600.0f
-#define pDash 3000.0f
+#define pDash 1600.0f
 #define jumpSpeed 500.0f
 #define gravity 1200.0f
 #define MaxChunkNum 5
 #define SPRITE_SCALE 3.0f
 #define dash_speed 2000.0f
-#define dash_duration .3f
+#define dash_duration .4f
 #define dash_cooldowntimer .6f
-
 #define attackduration 1.12f
 #define airattackduration .56f
 #define attackstartframe 3
@@ -64,7 +64,7 @@ typedef struct texture{
     Texture2D Woods_second;
     Texture2D woods_third;
     Texture2D Woods_fourth;
-
+    Texture2D Bush_background;
 // player textures    
     Texture2D idle;
     Texture2D running;
@@ -217,8 +217,8 @@ void initGame(GS* gs,tex* tex,anim* anim){
     loadAnimation(gs,tex,anim);
 
 //set player
-    gs->player.height = gs->player_animations[player_idle].frameHeight * SPRITE_SCALE*1.3f;
-    gs->player.width  = gs->player_animations[player_idle].frameWidth  * SPRITE_SCALE*1.3f;
+    gs->player.height = gs->player_animations[player_idle].frameHeight * SPRITE_SCALE*1.6f;
+    gs->player.width  = gs->player_animations[player_idle].frameWidth  * SPRITE_SCALE*1.6f;
 
     gs->player.initial_position.x=s_width/2.0f;
     gs->player.initial_position.y=ground_y-gs->player.height;
@@ -244,7 +244,7 @@ void initGame(GS* gs,tex* tex,anim* anim){
     }
 // setup background
     // setup background layers — farthest (slowest apparent motion) to nearest
-    float bg_scrollfactors[BG_LAYER_COUNT] = {0.1f, 0.25f, 0.45f,0.65f , 0.85f};
+    float bg_scrollfactors[BG_LAYER_COUNT] = {0.1f, 0.25f, 0.45f,0.65f , 0.85f,.95f};
     
     for(int i=0;i<BG_LAYER_COUNT;i++){
         parallax_layer *l = &gs->bgLayers[i];
@@ -326,19 +326,24 @@ void playerMovement(GS* gs,anim* anim,float dt){
     }
     //check button input
     if(IsKeyDown(KEY_D) && gs->player.isgrounded){ 
-        gs->player.velocity.x = pSpeed;
+
+        if(gs->player.isattacking) gs->player.velocity.x = pAttackMoveSpeed;
+        else gs->player.velocity.x = pSpeed;
+
         gs->player.facing_left=false;
-        setAnimation(gs,player_running);
+
+        if(!gs->player.isattacking) setAnimation(gs,player_running);
     }
     else if(IsKeyDown(KEY_D) && !gs->player.isgrounded){
         gs->player.velocity.x = pSpeedAir;
         gs->player.facing_left=false;
     }
     
-    else if(IsKeyDown(KEY_A)&& gs->player.isgrounded) {
-        gs->player.velocity.x = -pSpeed;
+    else if(IsKeyDown(KEY_A)&& gs->player.isgrounded ) {
+        if(gs->player.isattacking) gs->player.velocity.x = -pAttackMoveSpeed;
+        else gs->player.velocity.x = -pSpeed;
         gs->player.facing_left=true;
-        setAnimation(gs,player_running);
+        if(!gs->player.isattacking) setAnimation(gs,player_running);
     }
     else if(IsKeyDown(KEY_A) && !gs->player.isgrounded){
         gs->player.velocity.x = -pSpeedAir;
@@ -381,7 +386,7 @@ void updateGround(GS* gs){
 }
 
 void updateJumpFrame(GS* gs){
-    if(gs->player.isgrounded && !gs->current_player_anim_name==player_jump) return;
+    if(gs->player.isgrounded && gs->current_player_anim_name != player_jump) return;
     else {
         if(gs->player.velocity.y<0) gs->player_animations[player_jump].currentframe=0;
         else if(gs->player.velocity.y>250.0f) gs->player_animations[player_jump].currentframe=1;
@@ -402,12 +407,15 @@ void loadTexture(tex* tex, GS* gs){
     tex->Woods_second = LoadPixelTexture("assets/background_elements/WOODSSe.png");
     tex->woods_third  = LoadPixelTexture("assets/background_elements/WOODSTh.png");
     tex->Woods_fourth = LoadPixelTexture("assets/background_elements/WOODSFo.png");
+    tex->Bush_background = LoadPixelTexture("assets/background_elements/BUSH_BACKGROUND.png");
 
     gs->bgLayers[0].tex = tex->Background;
     gs->bgLayers[1].tex = tex->Woods_first;
     gs->bgLayers[2].tex = tex->Woods_second;
     gs->bgLayers[3].tex = tex->woods_third;
     gs->bgLayers[4].tex = tex->Woods_fourth;
+    gs->bgLayers[5].tex = tex->Bush_background;
+
 }
 
 
@@ -439,11 +447,11 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
     gs->player_animations[player_jump].looping = false;
 
     gs->player_animations[player_dash].tex = tex->dash;
-    gs->player_animations[player_dash].framecount = 6;
+    gs->player_animations[player_dash].framecount = 5;
     gs->player_animations[player_dash].frameduration = 0.08f;
     gs->player_animations[player_dash].timedependent=true;
     gs->player_animations[player_dash].frameHeight=  gs->player_animations[player_dash].tex.height;
-    gs->player_animations[player_dash].frameWidth=  gs->player_animations[player_dash].tex.width/gs->player_animations[player_dash].framecount;
+    gs->player_animations[player_dash].frameWidth=  gs->player_animations[player_dash].tex.width/6;
     gs->player_animations[player_dash].looping = false;
 
 
@@ -499,8 +507,8 @@ void drawPlayerSprite(GS* gs){
     Rectangle dest = {
         .x = gs->player.position.x,
         .y = gs->player.position.y,
-        .width  = a->frameWidth  * SPRITE_SCALE*1.3f,
-        .height = a->frameHeight * SPRITE_SCALE*1.3f
+        .width  = a->frameWidth  * SPRITE_SCALE*1.6f,
+        .height = a->frameHeight * SPRITE_SCALE*1.6f
     };
     DrawTexturePro(a->tex, source, dest, (Vector2){0,0}, 0.0f, WHITE);
 }
@@ -525,8 +533,8 @@ void drawBackground(GS* gs){
 
     for(int i=0;i<BG_LAYER_COUNT;i++){
         parallax_layer *l = &gs->bgLayers[i];
-        float texWidth  = l->tex.width  * BG_SCALE;
-        float texHeight = l->tex.height * BG_SCALE;
+        float texWidth  = (i==BG_LAYER_COUNT-1)?l->tex.width: l->tex.width  * BG_SCALE;
+        float texHeight = (i==BG_LAYER_COUNT-1)?l->tex.height:l->tex.height * BG_SCALE;
 
         float startX = fmodf(l->offsetX, texWidth);
         if (startX > 0) startX -= texWidth;
@@ -536,7 +544,7 @@ void drawBackground(GS* gs){
         for(int t=0; t<tilesNeeded; t++){
             Rectangle dest = {
                 .x = startX + t*texWidth + gs->camera.target.x - gs->camera.offset.x,
-                .y = groundTop - texHeight,
+                .y = (i==BG_LAYER_COUNT-1)?groundTop-texHeight:0,
                 .width  = texWidth,
                 .height = texHeight
             };
@@ -552,7 +560,7 @@ void unloadTexture(tex* tex){
     UnloadTexture(tex->idle);
     UnloadTexture(tex->jumpandfall);
     UnloadTexture(tex->running);
-    UnloadTexture(tex->attack1);
+    UnloadTexture(tex->attack1); 
     UnloadTexture(tex->Woods_first);
     UnloadTexture(tex->Woods_fourth);
     UnloadTexture(tex->Woods_second);
@@ -564,22 +572,24 @@ void playerDashUpdate(GS* gs,float dt){
 
     if(a->dashcooldowntimer>=0) a->dashcooldowntimer-=dt;
 
-    if(IsKeyPressed(KEY_LEFT_SHIFT) && !a->isdashing && a->dashcooldowntimer<=0){
+    if(IsKeyPressed(KEY_LEFT_SHIFT) && !a->isdashing && a->dashcooldowntimer<=0 && a->isgrounded){
         a->isdashing = true;
         a->dashcooldowntimer =dash_cooldowntimer;
         a->dashduration = dash_duration;
         a->velocity.x = (a->facing_left)? -dash_speed : dash_speed;
-        a->velocity.y = 0;
+        a->velocity.y = -260.0f;
         setAnimation(gs,player_dash);
     }
     if(a->dashduration>=0){
         a->dashduration-=dt;
+        
         if(a->dashduration<=0){
             a->isdashing = false;
             a->velocity.x = 0;
         }
     }
 }
+
 Rectangle gethitbox(GS* gs){
     Player* p = &gs->player;
     float hitbox_height = p->height;
@@ -592,6 +602,7 @@ Rectangle gethitbox(GS* gs){
     };
     return hitbox;
 }
+
 void hitting(GS* gs,float dt){
     Player* p = &gs->player;
     anim* a = &gs->player_animations[gs->current_player_anim_name];
