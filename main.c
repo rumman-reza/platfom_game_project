@@ -7,31 +7,39 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 
-
+//bg layers
 #define BG_LAYER_COUNT 6
-#define BG_SCALE (SPRITE_SCALE * 1.3f)
+//screen er size newa
 #define s_height GetScreenHeight()
 #define s_width GetScreenWidth()
+//different player speeds
 #define pSpeed 1000.0f
 #define pAttackMoveSpeed 500.0f
 #define pSpeedAir 600.0f
-#define pDash 1600.0f
 #define jumpSpeed 500.0f
 #define gravity 1200.0f
-#define MaxChunkNum 5
-#define SPRITE_SCALE 3.0f
-#define dash_speed 2000.0f
+#define dash_speed 2000.0f // jore laaf dewar speed
+//different timers
 #define dash_duration .4f
 #define dash_cooldowntimer .6f
 #define attackduration 1.12f
 #define airattackduration .56f
+// texture choto boro korar jonno
+#define SPRITE_SCALE 3.0f
+#define BG_SCALE (SPRITE_SCALE * 1.3f)
+// attack koto tuku gulo frame er moddhe hobe 
 #define attackstartframe 3
 #define attackendframe 6    
+//koto gulo ground chunk dekhabe
+#define MaxChunkNum 5
 
+
+// menu ar game e switch korar jonno enum
 typedef enum gameScreen{
     MENU=1,GAME=0
 } gamescreen;
 
+// ground er jonno struct
 typedef struct groundChunk
 {
     Rectangle groundChunkRect;
@@ -45,19 +53,34 @@ typedef struct Player{
     Vector2 position;
     Vector2 velocity;
     Vector2 initial_position;
+    // jump ar air e movement detect korar jonno
     bool isgrounded;
 
     bool isdashing;
     float dashduration;
-    float dashcooldowntimer;
+    float dashcooldowntimer; // ekta dash dewar por koto tuku time por abar dash dite parbe
 
     bool isattacking;
     float hitduration;
 
 }Player;
 
+typedef struct Enemy{
+    float width;
+    float height;
+    Vector2 position;
+    Vector2 velocity;
+    Vector2 inital_position;
+    bool facing_left;
+    float attack_duration;
+    float attack_cooldown;
+    bool isgrounded;
 
-typedef struct texture{
+} Enemy;
+
+
+typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and jekhane texture dorkar hoy 
+                        // shekhane amra ei sturcture theke access kori
 //background elements
     Texture2D Background;
     Texture2D Woods_first;
@@ -73,6 +96,10 @@ typedef struct texture{
     Texture2D die;
     Texture2D attack1;
     Texture2D air_attack1;
+// enemy textures
+    Texture2D enemy_idle;
+    Texture2D enemy_run;
+    Texture2D enemy_attack;
 }tex;
 
 typedef struct animation{
@@ -82,7 +109,7 @@ typedef struct animation{
     int framecount;
     int currentframe;
     float frameduration;
-    float frametimer;
+    float frametimer;// koto shomoy dhore frame screen ache 
     float timedependent;
     bool looping;
 } anim;
@@ -105,10 +132,18 @@ typedef enum animations{
 
 } anim_name;
 
-typedef struct parallax_layer{
+
+typedef enum enemy_animations{
+    enemy_idle,
+    enemy_running,
+    enemy_attack,
+    enemy_anim_num
+} enemy_anim;
+
+typedef struct parallax_layer{ // durer jinish aste cholbe ar kacher jinish druto cholbe
     Texture2D tex;
-    float scrollfactor;   // 0 = moves like ground (fast/near), 1 = nearly frozen (far)
-    float offsetX;        // accumulates every frame, unbounded — the fmodf math handles wraparound
+    float scrollfactor;   // kon layer koto druto cholbe 
+    float offsetX;        // player koto tuku shamne agaiche 
     Rectangle source;
 } parallax_layer;
 
@@ -116,9 +151,9 @@ typedef struct background{
     parallax_layer layer[5];
 } bglayer;
 
-typedef struct gameState
+typedef struct gameState // main struct of this game, ekhane shob rokom game er element ache 
 {
-    gamescreen currentscreen;
+    gamescreen currentscreen; // game menu te naki game er vitore ta bujhai
 
     Player player;
     anim player_animations[player_animations_number];
@@ -138,6 +173,10 @@ typedef struct gameState
 
     // restricting left movement
     float clamp_left;
+    //enemy things
+    Enemy enemy;
+    anim enemy_animations[enemy_anim_num];
+    anim_name current_enemy_anim_name;
 
 }GS;
  
@@ -160,7 +199,6 @@ void setAnimation(GS* gs,anim_name name);
 Texture2D LoadPixelTexture(const char *path);
 void drawBackground(GS* gs);
 void unloadTexture(tex* tex);
-void updateBackground(GS* gs);
 void updateJumpFrame(GS* gs);
 void playerDashUpdate(GS* gs,float dt);
 Rectangle gethitbox(GS* gs);
@@ -173,10 +211,12 @@ int main(){
     
     InitWindow(1920,1080,"practise");
     SetTargetFPS(120);
-    
+    // structure gulo define kora and 0 diye initialize kora
     GS gs={0};
     tex tex={0};
     anim anim = {0};
+
+    // game er shob kichu initialize kora 
     initGame(&gs,&tex,&anim);
     
     while(!WindowShouldClose()){
@@ -201,12 +241,14 @@ int main(){
     
 }
 
+
+
 Rectangle drawPlayerRect(GS* gs){
     return (Rectangle){gs->player.position.x,gs->player.position.y,gs->player.width,gs->player.height};
 }
 
 void initGame(GS* gs,tex* tex,anim* anim){
-    
+
     float ground_y = s_height*3.7f/4;
     float ground_height = s_height-ground_y;
     SetMouseCursor(MOUSE_CURSOR_CROSSHAIR);
@@ -225,7 +267,11 @@ void initGame(GS* gs,tex* tex,anim* anim){
 
     gs->player.position.x=s_width/2.0f;
     gs->player.position.y=ground_y-gs->player.height;
-  
+//set enemy
+    gs->enemy.height = gs->enemy_animations[enemy_idle].frameHeight * SPRITE_SCALE*1.60f;
+    gs->enemy.width = gs->enemy_animations[enemy_idle].frameWidth * SPRITE_SCALE * 1.60f;
+
+
 //set camera 
     gs->camera.offset = (Vector2){s_width/2.0f,0.0f};
     gs->camera.rotation = 0.0f;
@@ -242,7 +288,7 @@ void initGame(GS* gs,tex* tex,anim* anim){
         gs->gchunk[i].groundChunkRect = (Rectangle){gs->next_spawn_point,ground_y,s_width,ground_height};
         gs->next_spawn_point+=s_width;
     }
-// setup background
+
     // setup background layers — farthest (slowest apparent motion) to nearest
     float bg_scrollfactors[BG_LAYER_COUNT] = {0.1f, 0.25f, 0.45f,0.65f , 0.85f,.95f};
     
@@ -301,7 +347,6 @@ void updateGameplay(GS* gs,anim* anim,float dt){
 }
 
 void drawGame(GS* gs){
-//drawing background elements
 
 //drawing background elements
 
@@ -416,6 +461,13 @@ void loadTexture(tex* tex, GS* gs){
     gs->bgLayers[4].tex = tex->Woods_fourth;
     gs->bgLayers[5].tex = tex->Bush_background;
 
+    tex->enemy_idle = LoadPixelTexture("assets/enemy_sprites/SkeletonIdle.png");
+    tex->enemy_run = LoadPixelTexture("assets/enemy_sprites/SkeletonWalk.png");
+    tex->enemy_attack = LoadPixelTexture("assets/enemy_sprites/SkeletonAttack.png");
+
+
+
+
 }
 
 
@@ -478,6 +530,35 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
 
 
     gs->current_player_anim_name = player_idle;
+
+    anim* en_idle = &gs->enemy_animations[enemy_idle];
+    en_idle->tex = tex->enemy_idle;
+    en_idle->framecount = 11;
+    en_idle->frameduration = .08f;
+    en_idle->frameHeight = tex->enemy_idle.height;
+    en_idle->frameWidth = tex->enemy_idle.width/en_idle->framecount;
+    en_idle->looping = true;
+    en_idle->timedependent = true;
+    
+    anim* en_attack = &gs->enemy_animations[enemy_attack];
+    en_attack->tex = tex->enemy_attack;
+    en_attack->framecount = 18;
+    en_attack->frameduration = .08f;
+    en_attack->frameHeight = tex->enemy_attack.height;
+    en_attack->frameWidth = tex->enemy_attack.width/en_attack->framecount;
+    en_attack->looping = true;
+    en_attack->timedependent = true;
+
+    anim* en_run = &gs->enemy_animations[enemy_running];
+    en_run->tex = tex->enemy_run;
+    en_run->framecount = 13;
+    en_run->frameduration = .08f;
+    en_run->frameHeight = tex->enemy_run.height;
+    en_run->frameWidth = tex->enemy_run.width/en_run->framecount;
+    en_run->looping=true;
+    en_run->timedependent = true;
+    
+
 
 }
 void updateAnimation(GS* gs,float dt){
