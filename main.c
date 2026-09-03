@@ -1,3 +1,4 @@
+//this is the second code
 #include"raylib.h"
 #include "raymath.h"
 #include<stdbool.h>
@@ -12,7 +13,9 @@
 //screen er size newa
 #define s_height GetScreenHeight()
 #define s_width GetScreenWidth()
+
 #define camera_half_deadzone 450.0f // player ke koto tuku cholar jaiga dewa hobe camerar moddhe
+
 //different player speeds
 #define pSpeed 1000.0f
 #define pAttackMoveSpeed 500.0f
@@ -33,10 +36,14 @@
 #define attackendframe 6    
 //koto gulo ground chunk dekhabe
 #define MaxChunkNum 5
+
 // enemy er jono
 #define enSpeed 1000.0f
 #define encooldown 0.96f
 #define attackrange 90.0f
+// health  maximum and koto kore kombe seta 
+#define PLAYER_MAX_HEALTH 100.0f
+#define HEALTH_DECAY_RATE 5.0f 
 
 
 // menu ar game e switch korar jonno enum
@@ -68,19 +75,24 @@ typedef struct Player{
     bool isattacking;
     float hitduration;
 
+    // health  variable gulo 
+    float health;  
+    float maxHealth;   //maximum health koto
+    bool isDead;
+
 }Player;
 
 
-
 typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and jekhane texture dorkar hoy 
-    // shekhane amra ei sturcture theke access kori
-    //background elements
+                        // shekhane amra ei sturcture theke access kori
+//background elements
     Texture2D Background;
     Texture2D Woods_first;
     Texture2D Woods_second;
     Texture2D woods_third;
     Texture2D Woods_fourth;
     Texture2D Bush_background;
+
     // player textures    
     Texture2D idle;
     Texture2D running;
@@ -169,6 +181,11 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
     
 }GS;
 
+typedef enum enemystate{
+    idle_enemy,
+    walking_enemy,
+    attacking_enemy
+} enemystate;
 typedef struct Enemy{
     float width;
     float height;
@@ -186,11 +203,9 @@ typedef struct Enemy{
 
 } Enemy;
 
-typedef enum enemystate{
-    idle_enemy,
-    walking_enemy,
-    attacking_enemy
-} enemystate;
+
+    
+ 
 
 void drawGame(GS* gs);
 void initGame(GS* gs, tex* tex, anim* anim);
@@ -221,6 +236,7 @@ void drawEnemy(Enemy* a);
 void UnloadEnemyAnims(Enemy* enemy);
 void restrict_left_movement(GS* gs);
 void updateEnemyAnimation(Enemy* enemy,enemy_anim en_anim);
+void updateHealth(GS* gs, float dt);
 
 int main(){
     
@@ -230,7 +246,6 @@ int main(){
     GS gs={0};
     tex tex={0};
     anim anim = {0};
-    
     // game er shob kichu initialize kora 
     initGame(&gs,&tex,&anim);
     Enemy testenemy = loadEnemy(&tex);
@@ -284,18 +299,26 @@ void initGame(GS* gs,tex* tex,anim* anim){
 
     gs->player.position.x=s_width/2.0f;
     gs->player.position.y=ground_y-gs->player.height;
-
+    
 
 //set camera 
     gs->camera.offset = (Vector2){s_width/2.0f,0.0f};
     gs->camera.rotation = 0.0f;
     gs->camera.zoom = 1.0f;
+
     float player_center_x = gs->player.position.x + gs->player.width/2.0f;
     gs->camera.target = (Vector2){player_center_x-camera_half_deadzone,0.0f};
     gs->last_camera_x = gs->camera.target.x;
 // setup initial Ground
     gs->next_spawn_point=-s_width;
     gs->chunk_index=0;
+
+//heath function er variable gulo
+    gs->player.maxHealth = PLAYER_MAX_HEALTH;
+    gs->player.health = PLAYER_MAX_HEALTH;
+    gs->player.isDead = false;
+
+
 
     for(int i=0;i<MaxChunkNum;i++){
         gs->gchunk[i].groundChunkRect = (Rectangle){gs->next_spawn_point,ground_y,s_width,ground_height};
@@ -341,10 +364,11 @@ void groundedCheck(GS* gs,float dt){
     }
 }
 
-void updateGameplay(GS* gs,anim* anim,float dt){
+   void updateGameplay(GS* gs,anim* anim,float dt){
     updateAnimation(&gs->player_animations[gs->current_player_anim_name],dt);
     playerDashUpdate(gs,dt);
     Gravity(gs,dt);
+    updateHealth(gs,dt);
     hitting(gs,dt);
     playerMovement(gs,anim,dt);
     updateJumpFrame(gs);
@@ -352,12 +376,12 @@ void updateGameplay(GS* gs,anim* anim,float dt){
     groundedCheck(gs,dt);
     cameraMovement(gs);
     restrict_left_movement(gs);
-    
+
     float cameradelta = gs->camera.target.x - gs->last_camera_x;
     updateParallax(gs,cameradelta);
     gs->last_camera_x = gs->camera.target.x;
-
 }
+
 
 void drawGame(GS* gs){
 
@@ -548,9 +572,8 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
 
     gs->current_player_anim_name = player_idle;
 
-    
-
 }
+
 void updateAnimation(anim* a,float dt){
     
     if(!a->timedependent) return;
@@ -563,8 +586,10 @@ void updateAnimation(anim* a,float dt){
             a->currentframe = (a->currentframe + 1)%(a->framecount);
         }
         else if(a->currentframe < a->framecount-1 ) a->currentframe++;
-    }    
+    }
+
 }
+
 
 void drawPlayerSprite(GS* gs){
     anim *a = &gs->player_animations[gs->current_player_anim_name];
@@ -705,6 +730,7 @@ void updateParallax(GS* gs,float cameradeltax){
     }
 }
 
+
 void updateEnemy(Enemy* enemy,float dt){
     if(!enemy->isactive) return;
     updateAnimation(&enemy->enemy_animations[enemy->current_enemy_anim_name],dt); 
@@ -796,5 +822,15 @@ void updateEnemyAnimation(Enemy* enemy,enemy_anim en_anim){
         enemy->enemy_animations[en_anim].currentframe = 0;
         enemy->enemy_animations[en_anim].frametimer=0;
 
+    }
+}
+
+void updateHealth(GS* gs, float dt){
+    if(gs->player.isDead) return;
+    gs->player.health -= HEALTH_DECAY_RATE * dt;
+    if(gs->player.health <= 0.0f){
+        gs->player.health = 0.0f;
+        gs->player.isDead = true;
+        setAnimation(gs,player_die);
     }
 }
