@@ -32,6 +32,9 @@
 #define attackendframe 6    
 //koto gulo ground chunk dekhabe
 #define MaxChunkNum 5
+// health  maximum and koto kore kombe seta 
+#define PLAYER_MAX_HEALTH 100.0f
+#define HEALTH_DECAY_RATE 5.0f  
 
 
 // menu ar game e switch korar jonno enum
@@ -62,6 +65,10 @@ typedef struct Player{
 
     bool isattacking;
     float hitduration;
+    // health  variable gulo 
+    float health;  
+    float maxHealth;   //maximum health koto
+    bool isDead;
 
 }Player;
 
@@ -204,7 +211,7 @@ void playerDashUpdate(GS* gs,float dt);
 Rectangle gethitbox(GS* gs);
 void hitting(GS* gs,float dt);
 void updateParallax(GS* gs,float cameradeltax);
-
+void updateHealth(GS* gs, float dt);
 
 
 int main(){
@@ -270,7 +277,7 @@ void initGame(GS* gs,tex* tex,anim* anim){
 //set enemy
     gs->enemy.height = gs->enemy_animations[enemy_idle].frameHeight * SPRITE_SCALE*1.60f;
     gs->enemy.width = gs->enemy_animations[enemy_idle].frameWidth * SPRITE_SCALE * 1.60f;
-
+    
 
 //set camera 
     gs->camera.offset = (Vector2){s_width/2.0f,0.0f};
@@ -283,6 +290,13 @@ void initGame(GS* gs,tex* tex,anim* anim){
 // setup initial Ground
     gs->next_spawn_point=-s_width;
     gs->chunk_index=0;
+
+//heath function er variable gulo
+    gs->player.maxHealth = PLAYER_MAX_HEALTH;
+    gs->player.health = PLAYER_MAX_HEALTH;
+    gs->player.isDead = false;
+
+
 
     for(int i=0;i<MaxChunkNum;i++){
         gs->gchunk[i].groundChunkRect = (Rectangle){gs->next_spawn_point,ground_y,s_width,ground_height};
@@ -332,6 +346,7 @@ void updateGameplay(GS* gs,anim* anim,float dt){
     updateAnimation(gs,dt);
     playerDashUpdate(gs,dt);
     Gravity(gs,dt);
+    updateHealth(gs,dt); //decays HP hobe proti each frame
     hitting(gs,dt);
     playerMovement(gs,anim,dt);
     updateJumpFrame(gs);
@@ -712,5 +727,15 @@ void hitting(GS* gs,float dt){
 void updateParallax(GS* gs,float cameradeltax){
     for(int i=0;i<BG_LAYER_COUNT;i++){
         gs->bgLayers[i].offsetX -= cameradeltax * gs->bgLayers[i].scrollfactor;
+    }
+}
+
+
+void updateHealth(GS* gs, float dt){
+    if(gs->player.isDead) return;
+    gs->player.health -= HEALTH_DECAY_RATE * dt;
+    if(gs->player.health <= 0.0f){
+        gs->player.health = 0.0f;
+        gs->player.isDead = true;
     }
 }
