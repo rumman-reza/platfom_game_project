@@ -42,7 +42,7 @@
 #define enemy_attack_power 30.0f
 // health  maximum and koto kore kombe seta 
 #define PLAYER_MAX_HEALTH 100.0f
-#define HEALTH_DECAY_RATE 5.0f 
+#define HEALTH_DECAY_RATE 1.0f 
 #define player_invul_time .08f
 
 

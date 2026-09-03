@@ -19,7 +19,13 @@ void drawGame(GS* gs){
         DrawRectangleRec(gs->gchunk[i].groundChunkRect,DARKBROWN);
         // DrawRectangleLinesEx(gs->gchunk[i].groundChunkRect,3,BLACK);
 
-    }
+
+//    ei chunk e heal item thakle  and seta pick na kore
+//thakle box ta green 
+if(gs->gchunk[i].hasHealthItem && !gs->gchunk[i].healthItemCollected){
+            DrawRectangleRec(gs->gchunk[i].healthItemRect, GREEN);
+        }
+    }    
 //drawing player sprite
     drawPlayerSprite(gs);
 }
@@ -65,11 +71,20 @@ void initGame(GS* gs,tex* tex,anim* anim){
 
 
 
-    for(int i=0;i<MaxChunkNum;i++){
+for(int i=0;i<MaxChunkNum;i++){
         gs->gchunk[i].groundChunkRect = (Rectangle){gs->next_spawn_point,ground_y,s_width,ground_height};
+        gs->gchunk[i].hasHealthItem = true; 
+        gs->gchunk[i].healthItemCollected = false;
+        gs->gchunk[i].healthItemRect = (Rectangle){
+            .x = gs->next_spawn_point + (s_width * 0.8f),
+            .y = ground_y - 40.0f,
+            .width = 30.0f,
+            .height = 30.0f
+        };
+        
+        
         gs->next_spawn_point+=s_width;
     }
-
     // setup background layers — farthest (slowest apparent motion) to nearest
     float bg_scrollfactors[BG_LAYER_COUNT] = {0.1f, 0.25f, 0.45f,0.65f , 0.85f,.95f};
     
@@ -99,6 +114,9 @@ void updateGameplay(GS* gs,anim* anim,float dt){
     updateHealth(gs,dt);
     hitting(gs,dt);
     playerMovement(gs,anim,dt);
+
+    checkHealthPickup(gs); // collision ditect check 
+
     updateJumpFrame(gs);
     updateGround(gs);
     groundedCheck(gs,dt);

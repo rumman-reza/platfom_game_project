@@ -6,5 +6,6 @@
 void updateHealth(GS* gs, float dt);
 void damagePlayer(GS* gs,float amount);
 void damageenemy(Enemy* enemy,float amount);
+void drawHealthUI(GS* gs);   //health index er jonno UI
 
 #endif
