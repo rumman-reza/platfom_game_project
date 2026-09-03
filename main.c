@@ -791,5 +791,10 @@ void restrict_left_movement(GS* gs){
     }
 }
 void updateEnemyAnimation(Enemy* enemy,enemy_anim en_anim){
-    
+    if(enemy->current_enemy_anim_name != en_anim){
+        enemy->current_enemy_anim_name = en_anim;
+        enemy->enemy_animations[en_anim].currentframe = 0;
+        enemy->enemy_animations[en_anim].frametimer=0;
+
+    }
 }
