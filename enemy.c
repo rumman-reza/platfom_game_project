@@ -85,4 +85,8 @@ void updateEnemyAnimation(Enemy* enemy,enemy_anim en_anim){
 void updateEnemy(Enemy* enemy,float dt){
     if(!enemy->isactive) return;
     updateAnimation(&enemy->enemy_animations[enemy->current_enemy_anim_name],dt); 
+    
+    
+
+
 }

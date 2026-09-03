@@ -61,7 +61,7 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
     p_die->frameHeight = tex->die.height;
     p_die->frameWidth = tex->die.width/p_die->framecount;
     p_die->timedependent = true;
-    p_die->looping = true;
+    p_die->looping = false;
 
 
 

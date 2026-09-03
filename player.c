@@ -33,6 +33,7 @@ void drawPlayerSprite(GS* gs){
 }
 
 void playerDashUpdate(GS* gs,float dt){
+    if(gs->player.isDead) return;
     Player* a = &gs->player;
 
     if(a->dashcooldowntimer>=0) a->dashcooldowntimer-=dt;
@@ -68,6 +69,7 @@ Rectangle gethitbox(GS* gs){
 }
 
 void hitting(GS* gs,float dt){
+    if(gs->player.isDead) return;
     Player* p = &gs->player;
     anim* a = &gs->player_animations[gs->current_player_anim_name];
     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !p->isattacking && !p->isdashing && p->isgrounded){
@@ -93,6 +95,7 @@ void hitting(GS* gs,float dt){
 }
 
 void updateJumpFrame(GS* gs){
+    if(gs->player.isDead) return;
     if(gs->player.isgrounded && gs->current_player_anim_name != player_jump) return;
     else {
         if(gs->player.velocity.y<0) gs->player_animations[player_jump].currentframe=0;
