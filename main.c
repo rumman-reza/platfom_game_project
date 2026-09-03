@@ -1,3 +1,4 @@
+//this is the second code
 #include"raylib.h"
 #include "raymath.h"
 #include<stdbool.h>
@@ -12,6 +13,9 @@
 //screen er size newa
 #define s_height GetScreenHeight()
 #define s_width GetScreenWidth()
+
+#define camera_half_deadzone 450.0f // player ke koto tuku cholar jaiga dewa hobe camerar moddhe
+
 //different player speeds
 #define pSpeed 1000.0f
 #define pAttackMoveSpeed 500.0f
@@ -32,9 +36,14 @@
 #define attackendframe 6    
 //koto gulo ground chunk dekhabe
 #define MaxChunkNum 5
+
+// enemy er jono
+#define enSpeed 1000.0f
+#define encooldown 0.96f
+#define attackrange 90.0f
 // health  maximum and koto kore kombe seta 
 #define PLAYER_MAX_HEALTH 100.0f
-#define HEALTH_DECAY_RATE 5.0f  
+#define HEALTH_DECAY_RATE 5.0f 
 
 
 // menu ar game e switch korar jonno enum
@@ -65,25 +74,13 @@ typedef struct Player{
 
     bool isattacking;
     float hitduration;
+
     // health  variable gulo 
     float health;  
     float maxHealth;   //maximum health koto
     bool isDead;
 
 }Player;
-
-typedef struct Enemy{
-    float width;
-    float height;
-    Vector2 position;
-    Vector2 velocity;
-    Vector2 inital_position;
-    bool facing_left;
-    float attack_duration;
-    float attack_cooldown;
-    bool isgrounded;
-
-} Enemy;
 
 
 typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and jekhane texture dorkar hoy 
@@ -95,7 +92,8 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D woods_third;
     Texture2D Woods_fourth;
     Texture2D Bush_background;
-// player textures    
+
+    // player textures    
     Texture2D idle;
     Texture2D running;
     Texture2D dash;
@@ -103,7 +101,7 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D die;
     Texture2D attack1;
     Texture2D air_attack1;
-// enemy textures
+    // enemy textures
     Texture2D enemy_idle;
     Texture2D enemy_run;
     Texture2D enemy_attack;
@@ -122,21 +120,21 @@ typedef struct animation{
 } anim;
 
 typedef enum animations{
-     player_idle,
-     player_running,
-     player_jump,
-     player_dash,
-     player_die,
-     attack,
-     airattack,
-     player_animations_number,
-     background1,
-     background2,
-     background3,
-     background4,
-     background5,
-     background_layer_number
-
+    player_idle,
+    player_running,
+    player_jump,
+    player_dash,
+    player_die,
+    attack,
+    airattack,
+    player_animations_number,
+    background1,
+    background2,
+    background3,
+    background4,
+    background5,
+    background_layer_number
+    
 } anim_name;
 
 
@@ -161,46 +159,66 @@ typedef struct background{
 typedef struct gameState // main struct of this game, ekhane shob rokom game er element ache 
 {
     gamescreen currentscreen; // game menu te naki game er vitore ta bujhai
-
+    
     Player player;
     anim player_animations[player_animations_number];
     anim_name current_player_anim_name;
-
-
+    
+    
     Camera2D camera;
     float last_camera_x;
-
+    
     //ground stuff
     groundChunk gchunk[MaxChunkNum];
     float next_spawn_point;
     int chunk_index;
-
+    
     //background element
     parallax_layer bgLayers[BG_LAYER_COUNT];
-
-    // restricting left movement
-    float clamp_left;
+    
     //enemy things
-    Enemy enemy;
+    // enemy sobshomoy screen e present thake na tai enemy gs e thakbe na, function call kore use korte hobe
+    
+}GS;
+
+typedef enum enemystate{
+    idle_enemy,
+    walking_enemy,
+    attacking_enemy
+} enemystate;
+typedef struct Enemy{
+    float width;
+    float height;
+    Vector2 position;
+    Vector2 velocity;
+    Vector2 inital_position;
+    bool facing_left;
+    float attack_duration;
+    float attack_cooldown;
+    bool isgrounded;
     anim enemy_animations[enemy_anim_num];
     anim_name current_enemy_anim_name;
+    enemystate state;
+    bool isactive;
 
-}GS;
+} Enemy;
+
+
+    
  
 
 void drawGame(GS* gs);
 void initGame(GS* gs, tex* tex, anim* anim);
 void updateGame(GS* gs,anim* anim, float dt);
 void updateGameplay(GS* gs,anim* anim,float dt);
-Rectangle getPlayerRect(GS* gs);
+Rectangle drawPlayerRect(GS* gs);
 void playerMovement(GS* gs,anim* anim,float dt);
 void Gravity(GS* gs,float dt);
 void cameraMovement(GS* gs);
-void checkBoundary(GS* gs);
 void updateGround(GS *gs);
 void loadTexture(tex* tex, GS* gs);
 void loadAnimation(GS* gs,tex* tex, anim* anim);
-void updateAnimation(GS* gs,float dt);
+void updateAnimation(anim* a,float dt);
 void drawPlayerSprite(GS* gs);
 void setAnimation(GS* gs,anim_name name);
 Texture2D LoadPixelTexture(const char *path);
@@ -211,8 +229,14 @@ void playerDashUpdate(GS* gs,float dt);
 Rectangle gethitbox(GS* gs);
 void hitting(GS* gs,float dt);
 void updateParallax(GS* gs,float cameradeltax);
+Rectangle getEnemyRect(Enemy* enemy);
+void updateEnemy(Enemy* enemy,float dt);
+Enemy loadEnemy(tex* tex);
+void drawEnemy(Enemy* a);
+void UnloadEnemyAnims(Enemy* enemy);
+void restrict_left_movement(GS* gs);
+void updateEnemyAnimation(Enemy* enemy,enemy_anim en_anim);
 void updateHealth(GS* gs, float dt);
-
 
 int main(){
     
@@ -222,15 +246,15 @@ int main(){
     GS gs={0};
     tex tex={0};
     anim anim = {0};
-
     // game er shob kichu initialize kora 
     initGame(&gs,&tex,&anim);
+    Enemy testenemy = loadEnemy(&tex);
     
     while(!WindowShouldClose()){
         
         float dt = GetFrameTime();
         updateGame(&gs,&anim,dt);
-        
+        updateEnemy(&testenemy,dt);
         BeginDrawing();
         
         ClearBackground(RAYWHITE);
@@ -238,12 +262,13 @@ int main(){
         BeginMode2D(gs.camera);
 
         drawGame(&gs);
-        
+        drawEnemy(&testenemy);
         EndMode2D();
 
         EndDrawing();
     }
     unloadTexture(&tex);
+    UnloadEnemyAnims(&testenemy); 
     CloseWindow();
     
 }
@@ -274,9 +299,6 @@ void initGame(GS* gs,tex* tex,anim* anim){
 
     gs->player.position.x=s_width/2.0f;
     gs->player.position.y=ground_y-gs->player.height;
-//set enemy
-    gs->enemy.height = gs->enemy_animations[enemy_idle].frameHeight * SPRITE_SCALE*1.60f;
-    gs->enemy.width = gs->enemy_animations[enemy_idle].frameWidth * SPRITE_SCALE * 1.60f;
     
 
 //set camera 
@@ -284,9 +306,9 @@ void initGame(GS* gs,tex* tex,anim* anim){
     gs->camera.rotation = 0.0f;
     gs->camera.zoom = 1.0f;
 
-    gs->camera.target = (Vector2){gs->player.position.x,0.0f};
+    float player_center_x = gs->player.position.x + gs->player.width/2.0f;
+    gs->camera.target = (Vector2){player_center_x-camera_half_deadzone,0.0f};
     gs->last_camera_x = gs->camera.target.x;
-    gs->clamp_left = 0.0f;
 // setup initial Ground
     gs->next_spawn_point=-s_width;
     gs->chunk_index=0;
@@ -342,24 +364,24 @@ void groundedCheck(GS* gs,float dt){
     }
 }
 
-void updateGameplay(GS* gs,anim* anim,float dt){
-    updateAnimation(gs,dt);
+   void updateGameplay(GS* gs,anim* anim,float dt){
+    updateAnimation(&gs->player_animations[gs->current_player_anim_name],dt);
     playerDashUpdate(gs,dt);
     Gravity(gs,dt);
-    updateHealth(gs,dt); //decays HP hobe proti each frame
+    updateHealth(gs,dt);
     hitting(gs,dt);
     playerMovement(gs,anim,dt);
     updateJumpFrame(gs);
-    checkBoundary(gs);
     updateGround(gs);
     groundedCheck(gs,dt);
     cameraMovement(gs);
-    
+    restrict_left_movement(gs);
+
     float cameradelta = gs->camera.target.x - gs->last_camera_x;
     updateParallax(gs,cameradelta);
     gs->last_camera_x = gs->camera.target.x;
-
 }
+
 
 void drawGame(GS* gs){
 
@@ -429,12 +451,16 @@ void playerMovement(GS* gs,anim* anim,float dt){
 }
 
 void cameraMovement(GS* gs){
-    gs->camera.target = (Vector2){gs->player.position.x,0.0f};
+    // gs->camera.target = (Vector2){gs->player.position.x,0.0f};
+    float player_center_x = gs->player.position.x + gs->player.width/2.0f;
+    float camera_right_pos = gs->camera.target.x + camera_half_deadzone;
+
+    if(player_center_x>camera_right_pos){
+        gs->camera.target = (Vector2){player_center_x-camera_half_deadzone,0.0f};
+    }
 }
 
-void checkBoundary(GS* gs){
-    if(gs->player.position.x < gs->clamp_left) gs->player.position.x=gs->clamp_left;
-}
+
 
 void updateGround(GS* gs){
     float view_distance = gs->player.position.x + s_width;
@@ -546,50 +572,24 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
 
     gs->current_player_anim_name = player_idle;
 
-    anim* en_idle = &gs->enemy_animations[enemy_idle];
-    en_idle->tex = tex->enemy_idle;
-    en_idle->framecount = 11;
-    en_idle->frameduration = .08f;
-    en_idle->frameHeight = tex->enemy_idle.height;
-    en_idle->frameWidth = tex->enemy_idle.width/en_idle->framecount;
-    en_idle->looping = true;
-    en_idle->timedependent = true;
-    
-    anim* en_attack = &gs->enemy_animations[enemy_attack];
-    en_attack->tex = tex->enemy_attack;
-    en_attack->framecount = 18;
-    en_attack->frameduration = .08f;
-    en_attack->frameHeight = tex->enemy_attack.height;
-    en_attack->frameWidth = tex->enemy_attack.width/en_attack->framecount;
-    en_attack->looping = true;
-    en_attack->timedependent = true;
-
-    anim* en_run = &gs->enemy_animations[enemy_running];
-    en_run->tex = tex->enemy_run;
-    en_run->framecount = 13;
-    en_run->frameduration = .08f;
-    en_run->frameHeight = tex->enemy_run.height;
-    en_run->frameWidth = tex->enemy_run.width/en_run->framecount;
-    en_run->looping=true;
-    en_run->timedependent = true;
-    
-
-
 }
-void updateAnimation(GS* gs,float dt){
-    anim* a = &gs->player_animations[gs->current_player_anim_name];
-    if(!gs->player_animations[gs->current_player_anim_name].timedependent) return;
 
-    gs->player_animations[gs->current_player_anim_name].frametimer += dt;
+void updateAnimation(anim* a,float dt){
+    
+    if(!a->timedependent) return;
 
-    while(gs->player_animations[gs->current_player_anim_name].frametimer>=gs->player_animations[gs->current_player_anim_name].frameduration){
-        gs->player_animations[gs->current_player_anim_name].frametimer-=gs->player_animations[gs->current_player_anim_name].frameduration;
-        if(gs->player_animations[gs->current_player_anim_name].looping){
-            gs->player_animations[gs->current_player_anim_name].currentframe = (gs->player_animations[gs->current_player_anim_name].currentframe + 1)%(gs->player_animations[gs->current_player_anim_name].framecount);
+    a->frametimer += dt;
+
+    while(a->frametimer>=a->frameduration){
+        a->frametimer-=a->frameduration;
+        if(a->looping){
+            a->currentframe = (a->currentframe + 1)%(a->framecount);
         }
         else if(a->currentframe < a->framecount-1 ) a->currentframe++;
-    }    
+    }
+
 }
+
 
 void drawPlayerSprite(GS* gs){
     anim *a = &gs->player_animations[gs->current_player_anim_name];
@@ -731,11 +731,106 @@ void updateParallax(GS* gs,float cameradeltax){
 }
 
 
+void updateEnemy(Enemy* enemy,float dt){
+    if(!enemy->isactive) return;
+    updateAnimation(&enemy->enemy_animations[enemy->current_enemy_anim_name],dt); 
+}
+
+Rectangle getEnemyRect(Enemy* enemy){    
+    return (Rectangle) {.height = enemy->height, .width = enemy->width, .x=enemy->position.x, .y=enemy->position.y};
+}
+
+Enemy loadEnemy(tex* tex){
+    Enemy enemy = {0};
+    enemy.facing_left = true; // change this
+    enemy.height = tex->enemy_idle.height*SPRITE_SCALE*1.8f;
+    enemy.width = tex->enemy_idle.width*SPRITE_SCALE*1.8f;
+    enemy.isactive = true;
+    enemy.isgrounded = true;
+    enemy.inital_position = (Vector2){s_width,s_height*3.7f/4-enemy.height};
+    enemy.position = enemy.inital_position;
+
+
+    enemy.current_enemy_anim_name = enemy_idle;
+
+    anim* en_idle = &enemy.enemy_animations[enemy_idle];
+    en_idle->tex = tex->enemy_idle;
+    en_idle->framecount = 11;
+    en_idle->frameduration = .08f;
+    en_idle->frameHeight = tex->enemy_idle.height;
+    en_idle->frameWidth = tex->enemy_idle.width/en_idle->framecount;
+    en_idle->looping = true;
+    en_idle->timedependent = true;
+
+    anim* en_attack = &enemy.enemy_animations[enemy_attack];
+    en_attack->tex = tex->enemy_attack;
+    en_attack->framecount = 18;
+    en_attack->frameduration = .08f;
+    en_attack->frameHeight = tex->enemy_attack.height;
+    en_attack->frameWidth = tex->enemy_attack.width/en_attack->framecount;
+    en_attack->looping = true;
+    en_attack->timedependent = true;
+
+    anim* en_run = &enemy.enemy_animations[enemy_running];
+    en_run->tex = tex->enemy_run;
+    en_run->framecount = 13;
+    en_run->frameduration = .08f;
+    en_run->frameHeight = tex->enemy_run.height;
+    en_run->frameWidth = tex->enemy_run.width/en_run->framecount;
+    en_run->looping = true;
+    en_run->timedependent = true;
+
+    return enemy;
+
+}
+
+void drawEnemy(Enemy* enemy){
+    if(!enemy->isactive) return;
+
+    anim* frame = &enemy->enemy_animations[enemy->current_enemy_anim_name];
+
+    Rectangle source = {
+        .x = frame->currentframe*frame->frameWidth,
+        .y = 0,
+        .width = (enemy->facing_left)? -frame->frameWidth:frame->frameWidth,
+        .height = frame->frameHeight
+    };
+    Rectangle dest = {
+        .x = enemy->position.x,
+        .y = enemy->position.y,
+        .width = frame->frameWidth*SPRITE_SCALE*1.8f,
+        .height = frame->frameHeight*SPRITE_SCALE*1.8f
+    };
+    DrawTexturePro(frame->tex,source,dest,(Vector2){0.0f,0.0f},0.0f,WHITE);
+
+}
+
+void UnloadEnemyAnims(Enemy *e) {
+    for (int i = 0; i < enemy_anim_num; i++) {
+        if (e->enemy_animations[i].tex.id != 0) UnloadTexture(e->enemy_animations[i].tex);
+    }
+}
+
+void restrict_left_movement(GS* gs){
+    if(gs->player.position.x<gs->camera.target.x-s_width/2.0f){
+        gs->player.position.x = gs->camera.target.x-s_width/2.0f;
+    }
+}
+void updateEnemyAnimation(Enemy* enemy,enemy_anim en_anim){
+    if(enemy->current_enemy_anim_name != en_anim){
+        enemy->current_enemy_anim_name = en_anim;
+        enemy->enemy_animations[en_anim].currentframe = 0;
+        enemy->enemy_animations[en_anim].frametimer=0;
+
+    }
+}
+
 void updateHealth(GS* gs, float dt){
     if(gs->player.isDead) return;
     gs->player.health -= HEALTH_DECAY_RATE * dt;
     if(gs->player.health <= 0.0f){
         gs->player.health = 0.0f;
         gs->player.isDead = true;
+        setAnimation(gs,player_die);
     }
 }
