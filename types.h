@@ -29,8 +29,11 @@ typedef struct Player{
     float dashduration;
     float dashcooldowntimer; // ekta dash dewar por koto tuku time por abar dash dite parbe
 
+// attack related variables
     bool isattacking;
     float hitduration;
+    float invultimer;
+    bool hashitthiswing;
 
     // health  variable gulo 
     float health;  
@@ -141,8 +144,11 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
 typedef enum enemystate{
     idle_enemy,
     walking_enemy,
-    attacking_enemy
+    attacking_enemy,
+    hurting_enemy,
+    dead_enemy
 } enemystate;
+
 typedef struct Enemy{
     float width;
     float height;
@@ -150,14 +156,20 @@ typedef struct Enemy{
     Vector2 velocity;
     Vector2 inital_position;
     bool facing_left;
-    float attack_duration;
-    float attack_cooldown;
     bool isgrounded;
     anim enemy_animations[enemy_anim_num];
     anim_name current_enemy_anim_name;
     enemystate state;
     bool isactive;
-
+    
+    float health;
+    float maxhealth;
+    bool isdead;
+    bool isattacking;
+    float attack_duration;
+    float attack_cooldown;
+    bool hashitplayerthisswing;
+    
 } Enemy;
 
 #endif

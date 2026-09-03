@@ -3,7 +3,7 @@
 #include "types.h"
 
 Rectangle getEnemyRect(Enemy* enemy);
-void updateEnemy(Enemy* enemy,float dt);
+void updateEnemy(Enemy* enemy,GS* gs,float dt);
 Enemy loadEnemy(tex* tex);
 void drawEnemy(Enemy* a);
 void UnloadEnemyAnims(Enemy* enemy);

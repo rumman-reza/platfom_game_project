@@ -36,12 +36,14 @@
 #define MaxChunkNum 5
 
 // enemy er jono
-#define enSpeed 1000.0f
+#define enSpeed 900.0f
 #define encooldown 0.96f
-#define attackrange 90.0f
+#define attackrange 130.0f
+#define enemy_attack_power 30.0f
 // health  maximum and koto kore kombe seta 
 #define PLAYER_MAX_HEALTH 100.0f
-#define HEALTH_DECAY_RATE 20.0f 
+#define HEALTH_DECAY_RATE 5.0f 
+#define player_invul_time .08f
 
 
 #endif

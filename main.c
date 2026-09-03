@@ -7,6 +7,7 @@
 #include"game.h"
 #include"enemy.h"
 #include"texture.h"
+#include"animation.h"
 
 int main(){
     
@@ -24,7 +25,7 @@ int main(){
         
         float dt = GetFrameTime();
         updateGame(&gs,&anim,dt);
-        updateEnemy(&testenemy,dt);
+        updateEnemy(&testenemy,&gs,dt);
         BeginDrawing();
         
         ClearBackground(RAYWHITE);

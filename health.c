@@ -1,6 +1,7 @@
 #include"health.h"
 #include"player.h"
 
+
 void updateHealth(GS* gs, float dt){
     if(gs->player.isDead) return;
     gs->player.health -= HEALTH_DECAY_RATE * dt;
