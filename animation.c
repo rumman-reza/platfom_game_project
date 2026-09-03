@@ -54,8 +54,15 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
     air_attack_ani->looping = true;
     air_attack_ani->timedependent = true;
 
-    
-    gs->player_animations[player_die].tex = tex->die;
+    anim* p_die = &gs->player_animations[player_die];
+    p_die->tex = tex->die;
+    p_die->framecount = 4;
+    p_die->frameduration = 0.08f;
+    p_die->frameHeight = tex->die.height;
+    p_die->frameWidth = tex->die.width/p_die->framecount;
+    p_die->timedependent = true;
+    p_die->looping = true;
+
 
 
     gs->current_player_anim_name = player_idle;
