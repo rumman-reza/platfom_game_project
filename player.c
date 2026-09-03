@@ -163,3 +163,25 @@ void playerMovement(GS* gs,anim* anim,float dt){
     gs->player.position = (Vector2) Vector2Add(gs->player.position,Vector2Scale(gs->player.velocity,dt));
 
 }
+
+void checkHealthPickup(GS* gs){
+    if(gs->player.isDead) return;
+    Rectangle playerRect = getPlayerRect(gs);
+
+    for(int i = 0; i < MaxChunkNum; i++){
+        // item jodi thake and seta pick na kora hoye thake tobe 
+        if(gs->gchunk[i].hasHealthItem && !gs->gchunk[i].healthItemCollected){
+            if(CheckCollisionRecs(playerRect, gs->gchunk[i].healthItemRect)){
+                gs->player.health += 25.0f; // health joyp kore barate chai 
+                
+                // max health theke besi houya jabe na tai 
+                //max er theke besi hote laglei max ei rakhbo 
+                if(gs->player.health > gs->player.maxHealth){
+                    gs->player.health = gs->player.maxHealth;
+                }
+
+                gs->gchunk[i].healthItemCollected = true; // ekbar pick korle oita r dekha jabe na 
+            }
+        }
+    }
+}

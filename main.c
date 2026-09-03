@@ -7,11 +7,12 @@
 #include"game.h"
 #include"enemy.h"
 #include"texture.h"
-
+#include "health.h"
 int main(){
     
-    InitWindow(1920,1080,"practise");
-    SetTargetFPS(120);
+    InitWindow(1920,900,"practise");
+    SetTargetFPS(60);
+    ToggleBorderlessWindowed();
     // structure gulo define kora and 0 diye initialize kora
     GS gs={0};
     tex tex={0};
@@ -34,7 +35,7 @@ int main(){
         drawGame(&gs);
         drawEnemy(&testenemy);
         EndMode2D();
-
+           drawHealthUI(&gs);
         EndDrawing();
     }
     unloadTexture(&tex);

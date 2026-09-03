@@ -41,7 +41,7 @@
 #define attackrange 90.0f
 // health  maximum and koto kore kombe seta 
 #define PLAYER_MAX_HEALTH 100.0f
-#define HEALTH_DECAY_RATE 20.0f 
+#define HEALTH_DECAY_RATE 1.0f 
 
 
 #endif

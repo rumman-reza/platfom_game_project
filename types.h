@@ -12,6 +12,10 @@ typedef enum gameScreen{
 typedef struct groundChunk
 {
     Rectangle groundChunkRect;
+
+    bool hasHealthItem;         // chunk e health ache kina seta dekhbe 
+    Rectangle healthItemRect;   // health item er shape 
+    bool healthItemCollected;   // item ta ki already picked or not
 }groundChunk;
 
 
@@ -159,5 +163,13 @@ typedef struct Enemy{
     bool isactive;
 
 } Enemy;
+
+typedef struct HealthItem {
+    Vector2 position;
+    float width;
+    float height;
+    float healAmount; // koto kore health barbe seta 
+    bool active;      // healing obj screen e ache naki chole gese 
+} HealthItem;
 
 #endif
