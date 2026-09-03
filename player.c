@@ -1,5 +1,7 @@
 #include"player.h"
 #include "raymath.h"
+#include"types.h"
+
 void setAnimation(GS* gs,anim_name name){
     if(gs->current_player_anim_name != name){
         gs->current_player_anim_name = name;
@@ -104,21 +106,12 @@ void restrict_left_movement(GS* gs){
     }
 }
 
-void updateHealth(GS* gs, float dt){
-    if(gs->player.isDead) return;
-    gs->player.health -= HEALTH_DECAY_RATE * dt;
-    if(gs->player.health <= 0.0f){
-        gs->player.health = 0.0f;
-        gs->player.isDead = true;
-        setAnimation(gs,player_die);
-    }
-}
 
 void Gravity(GS* gs,float dt){
     gs->player.velocity.y += gravity*dt;
 }
 void playerMovement(GS* gs,anim* anim,float dt){
-
+    if(gs->player.isDead) return;
 
     if(gs->player.isdashing){ 
         gs->player.position = (Vector2)Vector2Add(gs->player.position,Vector2Scale(gs->player.velocity,dt));

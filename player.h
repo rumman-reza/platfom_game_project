@@ -13,7 +13,5 @@ void playerDashUpdate(GS* gs,float dt);
 Rectangle gethitbox(GS* gs);
 void hitting(GS* gs,float dt);
 void restrict_left_movement(GS* gs);
-void updateHealth(GS* gs, float dt);
-
 
 #endif

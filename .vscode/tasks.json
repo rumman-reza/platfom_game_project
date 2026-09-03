@@ -16,6 +16,7 @@
     "${workspaceFolder}/camera.c",
     "${workspaceFolder}/texture.c",
     "${workspaceFolder}/animation.c",
+    "${workspaceFolder}/health.c",
     "-I${workspaceFolder}/raylib/include",
     "-L${workspaceFolder}/raylib/lib",
     "-lraylib",

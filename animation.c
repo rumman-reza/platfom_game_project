@@ -18,7 +18,7 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
     gs->player_animations[player_running].timedependent = true;
     gs->player_animations[player_running].looping = true;
 
-
+    
 
     gs->player_animations[player_jump].tex = tex->jumpandfall;
     gs->player_animations[player_jump].framecount=2;

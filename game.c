@@ -6,6 +6,7 @@
 #include "ground.h"
 #include "background.h"
 #include "camera.h"
+#include "health.h"
 
 void drawGame(GS* gs){
 
