@@ -21,22 +21,36 @@ int main(){
     initGame(&gs,&tex,&anim);
     Enemy testenemy = loadEnemy(&tex);
     
-    while(!WindowShouldClose()){
+    while(!WindowShouldClose() && !gs.quit_game){
         
         float dt = GetFrameTime();
         updateGame(&gs,&anim,dt);
         updateEnemy(&testenemy,dt);
+     
+     
         BeginDrawing();
-        
-        ClearBackground(RAYWHITE);
+      ClearBackground(RAYWHITE);
 
-        BeginMode2D(gs.camera);
+        if (gs.currentscreen == MENU) {
+            drawMenu(&gs); //menu er defination ache game.c te prototype game.h
+        } 
+        else if (gs.currentscreen == NAME_ENTRY) {
+            // name screen draw hobe ekhane 
+            drawNameEntry(&gs);
+        }
+        else if (gs.currentscreen == GAME) {
+            BeginMode2D(gs.camera);
+            drawGame(&gs);
+            drawEnemy(&testenemy);
+            EndMode2D();
 
-        drawGame(&gs);
-        drawEnemy(&testenemy);
-        EndMode2D();
-           drawHealthUI(&gs);
+            drawHealthUI(&gs); 
+        }
+
         EndDrawing();
+
+
+        
     }
     unloadTexture(&tex);
     UnloadEnemyAnims(&testenemy); 
