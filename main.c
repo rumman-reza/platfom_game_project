@@ -46,11 +46,7 @@ int main(){
 
             drawHealthUI(&gs); 
         }
-
         EndDrawing();
-
-
-        
     }
     unloadTexture(&tex);
     UnloadEnemyAnims(&testenemy); 
