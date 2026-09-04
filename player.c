@@ -1,19 +1,53 @@
 #include"player.h"
 #include "raymath.h"
 #include"types.h"
+#include"enemy.h"
 
-void setAnimation(GS* gs,anim_name name){
-    if(gs->current_player_anim_name != name){
-        gs->current_player_anim_name = name;
-        gs->player_animations[name].currentframe=0;
-        gs->player_animations[name].frametimer=0;
+void setplayerstate(GS* gs){
+    playerstate newstate;
+    Player* p = &gs->player;
+    anim_name newanim;
+    if(p->isDead){
+        newanim = player_die;
+        newstate = dead_player;
+    }else if(p->invultimer>0.0f && gs->current_player_anim_name==player_hurt && !gs->player_animations[gs->current_player_anim_name].isfinished){
+        // jokhon kono animation emne cholte thakbe shesh na howa porjonto tokhon eivabe korte hobe
+        newanim = player_hurt;
+        newstate = hurting_player;
+    }else if(p->isdashing){
+        newanim = player_dash;
+        newstate = dashing_player;
+    }else if(p->isattacking && !p->isgrounded){
+        newanim = airattack;
+        newstate = attacking_player;
+    }else if(p->isattacking){
+        newanim = attack;
+        newstate = attacking_player;
     }
+    else if(!p->isgrounded){
+        newanim = player_jump;
+        newstate = jumping_player;
+    }
+    else if (fabs(p->velocity.x)>10.0f){
+        newanim = player_running;
+        newstate = running_player;
+
+    }else {
+        newanim = player_idle;
+        newstate = idle_player;
+    }
+    if(newanim!=gs->current_player_anim_name){
+        gs->current_player_anim_name = newanim;
+        gs->player_animations[newanim].currentframe = 0;
+        gs->player_animations[newanim].frametimer = 0;
+        gs->player_animations[newanim].isfinished =false;
+    }
+    if(gs->current_player_state!=newstate) gs->current_player_state = newstate;
 }
 
 Rectangle getPlayerRect(GS* gs){
     return (Rectangle){gs->player.position.x,gs->player.position.y,gs->player.width,gs->player.height};
 }
-
 void drawPlayerSprite(GS* gs){
     anim *a = &gs->player_animations[gs->current_player_anim_name];
 
@@ -33,7 +67,7 @@ void drawPlayerSprite(GS* gs){
 }
 
 void playerDashUpdate(GS* gs,float dt){
-    if(gs->player.isDead) return;
+    if(gs->current_player_state>dashing_player) return;
     Player* a = &gs->player;
 
     if(a->dashcooldowntimer>=0) a->dashcooldowntimer-=dt;
@@ -44,7 +78,6 @@ void playerDashUpdate(GS* gs,float dt){
         a->dashduration = dash_duration;
         a->velocity.x = (a->facing_left)? -dash_speed : dash_speed;
         a->velocity.y = -260.0f;
-        setAnimation(gs,player_dash);
     }
     if(a->dashduration>=0){
         a->dashduration-=dt;
@@ -55,47 +88,31 @@ void playerDashUpdate(GS* gs,float dt){
         }
     }
 }
-Rectangle gethitbox(GS* gs){
+Rectangle getplayerhitbox(GS* gs){
     Player* p = &gs->player;
-    float hitbox_height = p->height;
-    float hitbox_width = 40.0f*SPRITE_SCALE;
-    Rectangle hitbox = (Rectangle){
-        .height = hitbox_height,
-        .width = hitbox_width,
-        .x = (p->facing_left)? p->position.x-hitbox_width : p->position.x+hitbox_width,
-        .y = p->position.y
-    };
-    return hitbox;
+    Rectangle body = getPlayerRect(gs);
+    float reach = 60.0f;
+    float x = p->facing_left ?body.x - reach: body.x + body.width;
+    return (Rectangle){ x, body.y, reach, body.height };
 }
 
 void hitting(GS* gs,float dt){
-    if(gs->player.isDead) return;
+    if(gs->current_player_state>attacking_player) return;
+
     Player* p = &gs->player;
     anim* a = &gs->player_animations[gs->current_player_anim_name];
     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !p->isattacking && !p->isdashing && p->isgrounded){
         p->isattacking = true;
         p->hitduration = attackduration;
-        setAnimation(gs,attack);
     }else if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !p->isattacking && !p->isdashing && !p->isgrounded){
         p->isattacking = true;
         p->hitduration = airattackduration;
-        setAnimation(gs,airattack);
-    }
-    if(p->isattacking){
-        p->hitduration-=dt;
-        if(attackstartframe<= a->currentframe && a->currentframe <= attackendframe){
-            Rectangle hitbox = gethitbox(gs);
-            // check collision of hitbox with enemy rectangle then decrease enemy health
-        }
-        if(p->hitduration<=0){
-            p->isattacking = false;
-            setAnimation(gs,player_idle);
-        }
+
     }
 }
 
 void updateJumpFrame(GS* gs){
-    if(gs->player.isDead) return;
+    if(gs->current_player_state>jumping_player) return;
     if(gs->player.isgrounded && gs->current_player_anim_name != player_jump) return;
     else {
         if(gs->player.velocity.y<0) gs->player_animations[player_jump].currentframe=0;
@@ -114,12 +131,12 @@ void Gravity(GS* gs,float dt){
     gs->player.velocity.y += gravity*dt;
 }
 void playerMovement(GS* gs,anim* anim,float dt){
-    if(gs->player.isDead) return;
-
     if(gs->player.isdashing){ 
         gs->player.position = (Vector2)Vector2Add(gs->player.position,Vector2Scale(gs->player.velocity,dt));
         return;
     }
+    if(gs->player.isDead || gs->current_player_state==hurting_player) return;
+
     //check button input
     if(IsKeyDown(KEY_D) && gs->player.isgrounded){ 
 
@@ -128,7 +145,6 @@ void playerMovement(GS* gs,anim* anim,float dt){
 
         gs->player.facing_left=false;
 
-        if(!gs->player.isattacking) setAnimation(gs,player_running);
     }
     else if(IsKeyDown(KEY_D) && !gs->player.isgrounded){
         gs->player.velocity.x = pSpeedAir;
@@ -139,7 +155,6 @@ void playerMovement(GS* gs,anim* anim,float dt){
         if(gs->player.isattacking) gs->player.velocity.x = -pAttackMoveSpeed;
         else gs->player.velocity.x = -pSpeed;
         gs->player.facing_left=true;
-        if(!gs->player.isattacking) setAnimation(gs,player_running);
     }
     else if(IsKeyDown(KEY_A) && !gs->player.isgrounded){
         gs->player.velocity.x = -pSpeedAir;
@@ -148,15 +163,14 @@ void playerMovement(GS* gs,anim* anim,float dt){
 
     else{ 
         gs->player.velocity.x=0;
-        if(gs->player.isgrounded && !gs->player.isattacking) setAnimation(gs,player_idle);
-        else if(!gs->player.isgrounded && !gs->player.isattacking)setAnimation(gs,player_jump);
+        // if(gs->player.isgrounded && !gs->player.isattacking) setAnimation(gs,player_idle);
+        // else if(!gs->player.isgrounded && !gs->player.isattacking)setAnimation(gs,player_jump);
     }
 
 
     if(IsKeyPressed(KEY_SPACE) && gs->player.isgrounded){
         gs->player.velocity.y = -jumpSpeed;
         gs->player.isgrounded = false; 
-        setAnimation(gs,player_jump);
     }
 
     //update the player postion after taking input

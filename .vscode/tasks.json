@@ -17,6 +17,7 @@
     "${workspaceFolder}/texture.c",
     "${workspaceFolder}/animation.c",
     "${workspaceFolder}/health.c",
+    "${workspaceFolder}/combat.c",
     "-I${workspaceFolder}/raylib/include",
     "-L${workspaceFolder}/raylib/lib",
     "-lraylib",
@@ -24,6 +25,8 @@
     "-lgdi32",
     "-lwinmm",
     "-Wl,--defsym,stat64i32=_stat64",
+    "-Wall",
+    "-Wextra",
     "-o",
     "${workspaceFolder}/main.exe"
     ],

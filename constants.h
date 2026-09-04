@@ -22,9 +22,9 @@
 #define gravity 1200.0f
 #define dash_speed 2000.0f // jore laaf dewar speed
 //different timers
-#define dash_duration .4f
+#define dash_duration .32f
 #define dash_cooldowntimer .6f
-#define attackduration 1.12f
+#define attackduration .45f
 #define airattackduration .56f
 // texture choto boro korar jonno
 #define SPRITE_SCALE 3.0f
@@ -34,15 +34,22 @@
 #define attackendframe 6    
 //koto gulo ground chunk dekhabe
 #define MaxChunkNum 5
+#define player_attack_power 40.0f
 
 // enemy er jono
 #define enSpeed 900.0f
 #define encooldown 0.96f
 #define attackrange 130.0f
 #define enemy_attack_power 30.0f
+#define max_enemy_num 1
+#define enemy_max_health 60.0f
+#define enemy_invultimer .32f
+#define enemy_attack_start_frame 6
+#define enemy_attack_end_frame 10
+
 // health  maximum and koto kore kombe seta 
 #define PLAYER_MAX_HEALTH 100.0f
-#define HEALTH_DECAY_RATE 1.0f 
+#define HEALTH_DECAY_RATE 4.0f 
 #define player_invul_time .08f
 
 

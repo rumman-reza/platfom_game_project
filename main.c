@@ -2,7 +2,7 @@
 #include<stdbool.h>
 #include<math.h>
 
-
+// add enemy hurt animation and fix enemy damage code and find out why it's not working
 #include"types.h"
 #include"game.h"
 #include"enemy.h"
@@ -19,13 +19,11 @@ int main(){
     anim anim = {0};
     // game er shob kichu initialize kora 
     initGame(&gs,&tex,&anim);
-    Enemy testenemy = loadEnemy(&tex);
-    
+
     while(!WindowShouldClose()){
         
         float dt = GetFrameTime();
         updateGame(&gs,&anim,dt);
-        updateEnemy(&testenemy,&gs,dt);
         BeginDrawing();
         
         ClearBackground(RAYWHITE);
@@ -33,13 +31,12 @@ int main(){
         BeginMode2D(gs.camera);
 
         drawGame(&gs);
-        drawEnemy(&testenemy);
         EndMode2D();
-           drawHealthUI(&gs);
+        drawHealthUI(&gs);
         EndDrawing();
     }
     unloadTexture(&tex);
-    UnloadEnemyAnims(&testenemy); 
+    unloadenemy(&gs);
     CloseWindow();
     
 }

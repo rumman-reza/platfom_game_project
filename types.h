@@ -19,6 +19,16 @@ typedef struct groundChunk
 }groundChunk;
 
 
+typedef enum playerstate{
+    idle_player,
+    running_player,
+    jumping_player,
+    attacking_player,
+    dashing_player,
+    hurting_player,
+    dead_player
+}playerstate;
+
 typedef struct Player{
     float height;
     float width;
@@ -63,12 +73,15 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D dash;
     Texture2D jumpandfall;
     Texture2D die;
+    Texture2D hurt;
     Texture2D attack1;
     Texture2D air_attack1;
     // enemy textures
     Texture2D enemy_idle;
     Texture2D enemy_run;
     Texture2D enemy_attack;
+    Texture2D enemy_dead;
+    Texture2D enemy_hurt;
 }tex;
 
 typedef struct animation{
@@ -79,8 +92,9 @@ typedef struct animation{
     int currentframe;
     float frameduration;
     float frametimer;// koto shomoy dhore frame screen ache 
-    float timedependent;
+    bool timedependent;
     bool looping;
+    bool isfinished;
 } anim;
 
 typedef enum animations{
@@ -89,6 +103,7 @@ typedef enum animations{
     player_jump,
     player_dash,
     player_die,
+    player_hurt,
     attack,
     airattack,
     player_animations_number,
@@ -106,6 +121,8 @@ typedef enum enemy_animations{
     enemy_idle,
     enemy_running,
     enemy_attack,
+    enemy_dead,
+    enemy_hurt,
     enemy_anim_num
 } enemy_anim;
 
@@ -119,32 +136,6 @@ typedef struct parallax_layer{ // durer jinish aste cholbe ar kacher jinish drut
 typedef struct background{
     parallax_layer layer[5];
 } bglayer;
-
-typedef struct gameState // main struct of this game, ekhane shob rokom game er element ache 
-{
-    gamescreen currentscreen; // game menu te naki game er vitore ta bujhai
-    
-    Player player;
-    anim player_animations[player_animations_number];
-    anim_name current_player_anim_name;
-    
-    
-    Camera2D camera;
-    float last_camera_x;
-    
-    //ground stuff
-    groundChunk gchunk[MaxChunkNum];
-    float next_spawn_point;
-    int chunk_index;
-    
-    //background element
-    parallax_layer bgLayers[BG_LAYER_COUNT];
-    
-    //enemy things
-    // enemy sobshomoy screen e present thake na tai enemy gs e thakbe na, function call kore use korte hobe
-    
-}GS;
-
 typedef enum enemystate{
     idle_enemy,
     walking_enemy,
@@ -173,8 +164,37 @@ typedef struct Enemy{
     float attack_duration;
     float attack_cooldown;
     bool hashitplayerthisswing;
+    float invultimer;
     
 } Enemy;
+
+typedef struct gameState // main struct of this game, ekhane shob rokom game er element ache 
+{
+    gamescreen currentscreen; // game menu te naki game er vitore ta bujhai
+    
+    Player player;
+    anim player_animations[player_animations_number];
+    anim_name current_player_anim_name;
+    playerstate current_player_state;
+    
+    Camera2D camera;
+    float last_camera_x;
+    
+    //ground stuff
+    groundChunk gchunk[MaxChunkNum];
+    float next_spawn_point;
+    int chunk_index;
+    
+    //background element
+    parallax_layer bgLayers[BG_LAYER_COUNT];
+    
+    //enemy things
+    Enemy enemy[max_enemy_num];
+
+    // enemy sobshomoy screen e present thake na tai enemy gs e thakbe na, function call kore use korte hobe
+    
+}GS;
+
 
 typedef struct HealthItem {
     Vector2 position;

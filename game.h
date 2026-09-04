@@ -6,6 +6,6 @@ void drawGame(GS* gs);
 void initGame(GS* gs, tex* tex, anim* anim);
 void updateGame(GS* gs,anim* anim, float dt);
 void updateGameplay(GS* gs,anim* anim,float dt);
-
+void unloadenemy(GS* gs);
 
 #endif 

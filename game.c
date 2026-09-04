@@ -7,7 +7,7 @@
 #include "background.h"
 #include "camera.h"
 #include "health.h"
-
+#include"combat.h"
 void drawGame(GS* gs){
 
 //drawing background elements
@@ -28,6 +28,15 @@ if(gs->gchunk[i].hasHealthItem && !gs->gchunk[i].healthItemCollected){
     }    
 //drawing player sprite
     drawPlayerSprite(gs);
+    // DrawRectangleLinesEx(getplayerhitbox(gs),20,BLACK);
+    // DrawRectangleLinesEx(getPlayerRect(gs),10,(gs->player.isattacking)?RED:BLUE);
+
+//drawing enemy sprites
+    for(int i=0;i<max_enemy_num;i++){
+        drawEnemy(&gs->enemy[i]);
+        // DrawRectangleLinesEx(getEnemyHitbox(&gs->enemy[i]),20,BLACK);
+        // DrawRectangleLinesEx(getEnemyRect(&gs->enemy[i]),10,BLUE);
+    }
 }
 
 void initGame(GS* gs,tex* tex,anim* anim){
@@ -43,7 +52,7 @@ void initGame(GS* gs,tex* tex,anim* anim){
 
 //set player
     gs->player.height = gs->player_animations[player_idle].frameHeight * SPRITE_SCALE*1.6f;
-    gs->player.width  = gs->player_animations[player_idle].frameWidth  * SPRITE_SCALE*1.6f;
+    gs->player.width  = gs->player_animations[player_idle].frameWidth*SPRITE_SCALE;
 
     gs->player.initial_position.x=s_width/2.0f;
     gs->player.initial_position.y=ground_y-gs->player.height;
@@ -68,7 +77,6 @@ void initGame(GS* gs,tex* tex,anim* anim){
     gs->player.maxHealth = PLAYER_MAX_HEALTH;
     gs->player.health = PLAYER_MAX_HEALTH;
     gs->player.isDead = false;
-
 
 
 for(int i=0;i<MaxChunkNum;i++){
@@ -98,6 +106,10 @@ for(int i=0;i<MaxChunkNum;i++){
             .height = l->tex.height
         };
     }
+    // spawing a random enemy
+    for(int i=0;i<max_enemy_num;i++){
+        gs->enemy[i] = loadEnemy(tex);
+    }
 }
 
 void updateGame(GS* gs,anim* anim,float dt){
@@ -106,26 +118,42 @@ void updateGame(GS* gs,anim* anim,float dt){
     }
 }
 
+void unloadenemy(GS* gs){
+    for(int i=0;i<max_enemy_num;i++){
+        UnloadEnemyAnims(&gs->enemy[i]); 
+    }
+}
 
 void updateGameplay(GS* gs,anim* anim,float dt){
-    updateAnimation(&gs->player_animations[gs->current_player_anim_name],dt);
     playerDashUpdate(gs,dt);
     Gravity(gs,dt);
-    updateHealth(gs,dt);
     hitting(gs,dt);
     playerMovement(gs,anim,dt);
-
+    restrict_left_movement(gs);
+    groundedCheck(gs,dt);
+    setplayerstate(gs);
+    updateJumpFrame(gs);
+    updateAnimation(&gs->player_animations[gs->current_player_anim_name],dt);
+    
+    updateHealth(gs,dt);
     checkHealthPickup(gs); // collision ditect check 
 
-    updateJumpFrame(gs);
     updateGround(gs);
-    groundedCheck(gs,dt);
     cameraMovement(gs);
-    restrict_left_movement(gs);
 
     float cameradelta = gs->camera.target.x - gs->last_camera_x;
     updateParallax(gs,cameradelta);
     gs->last_camera_x = gs->camera.target.x;
+
+
+    //enemy functions
+    updateEnemyInvultimer(gs,dt);
+    updatePlayerInvulnerability(gs,dt);
+    updateCombat(gs,dt);
+    updateEnemy(gs,dt);
+    updateEnemyAnimations(gs,dt);
+
+
 }
 
 

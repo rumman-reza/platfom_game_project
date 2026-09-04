@@ -1,6 +1,6 @@
 #include"health.h"
 #include"player.h"
-
+#include"enemy.h"
 
 void updateHealth(GS* gs, float dt){
     if(gs->player.isDead) return;
@@ -8,7 +8,6 @@ void updateHealth(GS* gs, float dt){
     if(gs->player.health <= 0.0f){
         gs->player.health = 0.0f;
         gs->player.isDead = true;
-        setAnimation(gs,player_die);
     }
 }
 
@@ -49,4 +48,43 @@ void drawHealthUI(GS* gs){
     DrawText(TextFormat("HP: %d/%d", (int)gs->player.health, (int)gs->player.maxHealth), posX, posY + barHeight + 5, 20, BLACK);
 
     DrawText(TextFormat("%d%%", displayPercentage), posX, posY + barHeight + 5, 20, WHITE);
+}
+
+
+void damagePlayer(GS* gs,float amount){
+    Player* p = &gs->player;
+    if(p->isDead || p->invultimer>0) return;
+    p->health-=amount;
+    p->invultimer = player_invul_time;
+
+    if(p->health<=0.0f){
+        p->isDead = true;
+        p->health=0.0f;
+    }
+    else {
+        gs->current_player_anim_name = player_hurt;
+        p->velocity.x = 0;
+    }
+}
+
+// void damageEnemy(Enemy *e, float amount) {
+//     if (e->isdead) return;
+
+//     e->health -= amount;
+
+//     if (e->health <= 0.0f) {
+//         e->health = 0.0f;
+//         e->isdead = true;
+//         updateEnemyAnimation(e,enemy_dead);
+//     } else {
+//         updateEnemyAnimation(e,enemy_hurt);
+//     }
+// }
+
+void updatePlayerInvulnerability(GS* gs,float dt){
+    Player* p = &gs->player;
+    if (p->invultimer >= 0.0f) {
+        p->invultimer -= dt; 
+        if (p->invultimer < 0.0f) p->invultimer = 0.0f;
+    }
 }
