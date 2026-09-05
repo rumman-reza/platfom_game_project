@@ -149,6 +149,8 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
     
     char playerName[25];  
     int nameLetterCount;
+
+    int score;
 }GS;
 
 typedef enum enemystate{

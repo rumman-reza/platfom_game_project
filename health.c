@@ -48,4 +48,17 @@ void drawHealthUI(GS* gs){
     DrawText(TextFormat("HP: %d/%d", (int)gs->player.health, (int)gs->player.maxHealth), posX, posY + barHeight + 5, 20, BLACK);
 
     DrawText(TextFormat("%d%%", displayPercentage), posX, posY + barHeight + 5, 20, WHITE);
+
+    const char* heroName = TextFormat("HERO: %s", (gs->playerName));
+    int nameY = posY + barHeight + 45;
+
+    DrawText(heroName, posX + 3, nameY + 3, 40, BLACK);
+
+    DrawText(heroName, posX, nameY, 30, MAGENTA);
+
+//right side theke 250 px vetore 
+    int scorePosX = s_width - 250; 
+    DrawText(TextFormat("SCORE: %05d", gs->score), scorePosX, 20, 30, BLACK);
+//name top left  
+
 }

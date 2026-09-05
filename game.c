@@ -8,6 +8,7 @@
 #include "camera.h"
 #include "health.h"
 
+
 void drawGame(GS* gs){
 
 //drawing background elements
@@ -125,6 +126,11 @@ void updateGameplay(GS* gs,anim* anim,float dt){
     updateHealth(gs,dt);
     hitting(gs,dt);
     playerMovement(gs,anim,dt);
+    //samne agalei score barbe
+    if(!gs->player.isDead && gs->player.position.x > 0){
+        //100px=1pts;
+        gs->score = (int)(gs->player.position.x / PTS_PX); 
+    }
 
     checkHealthPickup(gs); // collision ditect check 
 
@@ -137,6 +143,9 @@ void updateGameplay(GS* gs,anim* anim,float dt){
     float cameradelta = gs->camera.target.x - gs->last_camera_x;
     updateParallax(gs,cameradelta);
     gs->last_camera_x = gs->camera.target.x;
+
+
+
 }
 
 
@@ -219,6 +228,7 @@ void updateNameEntry(GS* gs) {
     // ENTER chaple game start at least 1 ta letter likhtei hobe 
     if (IsKeyPressed(KEY_ENTER) && gs->nameLetterCount > 0) {
         gs->currentscreen = GAME;
+        gs->score = 0;
     }
 }
 

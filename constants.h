@@ -42,6 +42,6 @@
 // health  maximum and koto kore kombe seta 
 #define PLAYER_MAX_HEALTH 100.0f
 #define HEALTH_DECAY_RATE 10.0f 
-
+#define PTS_PX 100.0f  //scoring
 
 #endif
