@@ -127,9 +127,7 @@
         for(int i=0;i<max_enemy_num;i++){
             Enemy* enemy = &gs->enemy[i];
             
-            if(!enemy->isactive) continue;;
-
-            Player* player = &gs->player;
+            if(!enemy->isactive) continue;
 
             float player_center_x = getPlayerCenterX(gs);
             float enemey_center_x = enemy->position.x + enemy->width/2.0f;
@@ -154,18 +152,18 @@
                         updateEnemyAnimation(enemy,enemy_hurt);
                     }
                     else{ 
-                        if(dist<=attackrange){
+                        if(dist<=attackrange && !gs->player.isDead){
                             enemy->state = attacking_enemy;
                             enemy->velocity.x = 0;  
                             enemy->hashitplayerthisswing = false; 
-                            updateEnemyAnimation(enemy,enemy_attack);
+                            if(!gs->player.isDead) updateEnemyAnimation(enemy,enemy_attack);
                             enemy->enemy_animations[enemy->current_enemy_anim_name].currentframe = 0;
                             enemy->enemy_animations[enemy->current_enemy_anim_name].isfinished = 0;
                             break;
                         }
                         else{
                             enemy->state = walking_enemy;
-                            updateEnemyAnimation(enemy,enemy_running);
+                            if(!gs->player.isDead)updateEnemyAnimation(enemy,enemy_running);
                             break;
                         }
                     }
@@ -173,7 +171,7 @@
                 }
 
                 case walking_enemy:{
-                    if(dist<=attackrange){
+                    if(dist<=attackrange && !gs->player.isDead){
                         enemy->velocity.x = 0;  
                         enemy->state = attacking_enemy;
                         enemy->current_enemy_anim_name = enemy_attack;
@@ -187,18 +185,18 @@
                     float dir = (enemy->facing_left)? -1.0f:1.0f;
                     enemy->velocity.x = dir*enSpeed;
                     enemy->position.x += enemy->velocity.x*dt;
-                    updateEnemyAnimation(enemy,enemy_running);
+                    if(!gs->player.isDead) updateEnemyAnimation(enemy,enemy_running);
                     break;
                 }
                 case attacking_enemy: {
                     enemy->velocity.x = 0;
                     if(dist>attackrange && enemy->current_enemy_anim_name==enemy_attack && a->isfinished) {
                         enemy->state = walking_enemy;
-                        updateEnemyAnimation(enemy,enemy_running);
+                        if(!gs->player.isDead) updateEnemyAnimation(enemy,enemy_running);
 
                         break;
                     }
-                    if(enemy->attack_cooldown<=0){
+                    if(enemy->attack_cooldown<=0 && !gs->player.isDead){
                         if (dist <= attackrange){ 
                             enemy->hashitplayerthisswing = false; 
                             updateEnemyAnimation(enemy, enemy_attack);
@@ -207,7 +205,7 @@
                             enemy->attack_cooldown = encooldown;
                         } else {
                             enemy->state = walking_enemy;
-                            updateEnemyAnimation(enemy, enemy_running);
+                            if(!gs->player.isDead) updateEnemyAnimation(enemy, enemy_running);
                         }
                     }
                     // else if(enemy->current_enemy_anim_name == enemy_attack && enemy->enemy_animations[enemy_attack].currentframe>= enemy->enemy_animations[enemy_attack].framecount - 1){

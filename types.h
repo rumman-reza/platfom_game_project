@@ -6,8 +6,9 @@
 // menu ar game e switch korar jonno enum
 typedef enum gameScreen{
     MENU=1,
-    NAME_ENTRY,
-    GAME=0
+    GAME=0,
+    NAME_ENTRY=2,
+    GAMEOVER=3
 } gamescreen;
 
 // ground er jonno struct
@@ -202,7 +203,7 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
     
     int menu_selection; // 0 for start game 1 diye exit 
     bool quit_game;  
-    
+    bool is_game_over;
     //player name 
     
     char playerName[25];  
@@ -210,6 +211,9 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
 
     //fonts
     font cfonts;
+
+    //testing timer
+    float timer;
 }GS;
 
 
