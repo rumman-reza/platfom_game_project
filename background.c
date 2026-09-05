@@ -32,3 +32,25 @@ void updateParallax(GS* gs,float cameradeltax){
     }
 }
 
+void drawBackgroundMenu(GS* gs){
+    for(int i = 0; i < BG_LAYER_COUNT; i++){
+        parallax_layer *l = &gs->bgLayers[i];
+        float texWidth  = (i == BG_LAYER_COUNT-1) ? l->tex.width  : l->tex.width  * BG_SCALE;
+        float texHeight = (i == BG_LAYER_COUNT-1) ? l->tex.height : l->tex.height * BG_SCALE;
+
+        float startX = fmodf(l->offsetX, texWidth);
+        if (startX > 0) startX -= texWidth;
+
+        int tilesNeeded = (int)(s_width / texWidth) + 2;
+
+        for(int t = 0; t < tilesNeeded; t++){
+            Rectangle dest = {
+                .x = startX + t * texWidth,
+                .y = (i == BG_LAYER_COUNT-1) ? s_height - texHeight : 0, // menu-te ground chunk nei, tai screen bottom use korlam
+                .width  = texWidth,
+                .height = texHeight
+            };
+            DrawTexturePro(l->tex, l->source, dest, (Vector2){0,0}, 0.0f, WHITE);
+        }
+    }
+}

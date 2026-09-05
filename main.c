@@ -11,7 +11,7 @@
 #include "health.h"
 int main(){
     
-    InitWindow(1920,1080,"practise");
+    InitWindow(1920,1080,"Epic Adventure");
     SetTargetFPS(60);
     // structure gulo define kora and 0 diye initialize kora
     GS gs={0};

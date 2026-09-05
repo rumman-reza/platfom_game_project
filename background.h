@@ -4,5 +4,5 @@
 
 void drawBackground(GS* gs);
 void updateParallax(GS* gs,float cameradeltax);
-
+void drawBackgroundMenu(GS* gs);
 #endif

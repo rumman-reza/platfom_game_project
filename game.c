@@ -207,7 +207,7 @@ void updateMenu(GS* gs) {
 }
 
 void drawMenu(GS* gs) {
-    drawBackground(gs);
+    drawBackgroundMenu(gs);
     DrawRectangle(0,0,s_width,s_height,GetColor(0x000000AA));
     //menu title --epic adv
     const char* title = "EPIC ADVENTURE";
@@ -264,7 +264,7 @@ void updateNameEntry(GS* gs) {
 }
 
 void drawNameEntry(GS* gs) {
-    drawBackground(gs);
+    drawBackgroundMenu(gs);
     DrawRectangle(0,0,s_width,s_height,GetColor(0x000000AA));
     // dark layer  bg te 
     DrawRectangle(0, 0, s_width, s_height, Fade(BLACK, 0.7f));
@@ -275,8 +275,8 @@ void drawNameEntry(GS* gs) {
     float boxX = (s_width / 2) - (boxWidth / 2);
     float boxY = (s_height / 2) - (boxHeight / 2);
     
-    DrawRectangleRounded((Rectangle){boxX, boxY, boxWidth, boxHeight}, 0.1f, 10, Fade(DARKGRAY, 0.9f));
-    DrawRectangleRoundedLines((Rectangle){boxX, boxY, boxWidth, boxHeight}, 0.1f, 10, GOLD);
+    // DrawRectangleRounded((Rectangle){boxX, boxY, boxWidth, boxHeight}, 0.1f, 10, Fade(DARKGRAY, 0.9f));
+    // DrawRectangleRoundedLines((Rectangle){boxX, boxY, boxWidth, boxHeight}, 0.1f, 10, GOLD);
 
     // title text 
     const char* title = "ENTER YOUR HERO NAME";
