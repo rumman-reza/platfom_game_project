@@ -20,7 +20,7 @@ int main(){
     // game er shob kichu initialize kora 
     initGame(&gs,&tex,&anim);
 
-    while(!WindowShouldClose()){
+    while(!WindowShouldClose() && !gs.quit_game){
         
         float dt = GetFrameTime();
         updateGame(&gs,&anim,dt);

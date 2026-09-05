@@ -13,20 +13,20 @@
     //drawing background elements
 
         drawBackground(gs);
-
     //drawing the ground rectangles;
-        for(int i=0;i<MaxChunkNum;i++){
-            DrawRectangleRec(gs->gchunk[i].groundChunkRect,DARKBROWN);
-            // DrawRectangleLinesEx(gs->gchunk[i].groundChunkRect,3,BLACK);
-
-
-    //    ei chunk e heal item thakle  and seta pick na kore
-    //thakle box ta green 
-    if(gs->gchunk[i].hasHealthItem && !gs->gchunk[i].healthItemCollected){
-                DrawRectangleRec(gs->gchunk[i].healthItemRect, GREEN);
-            }
-        }    
+    for(int i=0;i<MaxChunkNum;i++){
+        DrawRectangleRec(gs->gchunk[i].groundChunkRect,DARKBROWN);
+        // DrawRectangleLinesEx(gs->gchunk[i].groundChunkRect,3,BLACK);
+        
+        
+        // ei chunk e heal item thakle  and seta pick na kore
+        //thakle box ta green 
+        if(gs->gchunk[i].hasHealthItem && !gs->gchunk[i].healthItemCollected){
+            DrawRectangleRec(gs->gchunk[i].healthItemRect, GREEN);
+        }
+    }    
     //drawing player sprite
+
         drawPlayerSprite(gs);
         // DrawRectangleLinesEx(getplayerhitbox(gs),20,BLACK);
         // DrawRectangleLinesEx(getPlayerRect(gs),10,(gs->player.isattacking)?RED:BLUE);
@@ -182,18 +182,18 @@ void updateGame(GS* gs, anim* anim, float dt){
 
 void updateMenu(GS* gs) {
    //down key niche toggle korar jonno 
-    if (IsKeyPressed(KEY_DOWN)) {
+    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) {
         gs->menu_selection++;
         if (gs->menu_selection > 1) gs->menu_selection = 0; // 2 tar besi option nai tao 0 te chole jabe 
     }
     //up key te vice versa
-    if (IsKeyPressed(KEY_UP)) {
+    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
         gs->menu_selection--;
         if (gs->menu_selection < 0) gs->menu_selection = 1;
     }
 
     //enter key
-if (IsKeyPressed(KEY_ENTER)) {
+    if (IsKeyPressed(KEY_ENTER)) {
         if (gs->menu_selection == 0) {
             gs->currentscreen = NAME_ENTRY; // name page 
             gs->nameLetterCount = 0;        // name reset kora
@@ -203,16 +203,19 @@ if (IsKeyPressed(KEY_ENTER)) {
             gs->quit_game = true;
         }
     }
+    updateParallax(gs,5.0f);
 }
 
 void drawMenu(GS* gs) {
+    drawBackground(gs);
+    DrawRectangle(0,0,s_width,s_height,GetColor(0x000000AA));
     //menu title --epic adv
     const char* title = "EPIC ADVENTURE";
     int titleWidth = MeasureText(title, 80);
     
     // shadow ar main text 
-    DrawText(title, (s_width / 2) - (titleWidth / 2) + 5, s_height / 4 + 5, 80, BLACK);
-    DrawText(title, (s_width / 2) - (titleWidth / 2), s_height / 4, 80, GOLD);
+    DrawTextEx(gs->cfonts.menu_font1,title,(Vector2){(s_width / 2) -360- (titleWidth / 2) + 5, s_height / 4 + 5}, 150, 0,BLACK);
+    DrawTextEx(gs->cfonts.menu_font1,title,(Vector2){ (s_width / 2) -360- (titleWidth / 2), s_height / 4}, 150,0, GOLD);
 
     //option selected jeta seta lal dekahbe 
     Color startColor = (gs->menu_selection == 0) ? RED : DARKGRAY;
@@ -257,9 +260,12 @@ void updateNameEntry(GS* gs) {
     if (IsKeyPressed(KEY_ENTER) && gs->nameLetterCount > 0) {
         gs->currentscreen = GAME;
     }
+    updateParallax(gs,5.0f);
 }
 
 void drawNameEntry(GS* gs) {
+    drawBackground(gs);
+    DrawRectangle(0,0,s_width,s_height,GetColor(0x000000AA));
     // dark layer  bg te 
     DrawRectangle(0, 0, s_width, s_height, Fade(BLACK, 0.7f));
 

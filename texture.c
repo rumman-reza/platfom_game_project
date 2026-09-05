@@ -50,4 +50,6 @@ void loadTexture(tex* tex, GS* gs){
     tex->enemy_dead = LoadPixelTexture("assets/enemy_sprites/SkeletonDead.png");
     tex->enemy_hurt = LoadPixelTexture("assets/enemy_sprites/SkeletonHit.png");
 
+    gs->cfonts.menu_font1 = LoadFontEx("assets/fonts/Pixelmania.ttf",200,0,0);
+
 }

@@ -58,6 +58,11 @@ typedef struct Player{
 
 }Player;
 
+typedef struct font{
+    Font menu_font1;
+    Font menu_font2;
+}font;
+
 
 typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and jekhane texture dorkar hoy 
                         // shekhane amra ei sturcture theke access kori
@@ -84,7 +89,9 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D enemy_attack;
     Texture2D enemy_dead;
     Texture2D enemy_hurt;
+    
 }tex;
+
 
 typedef struct animation{
     Texture2D tex;
@@ -190,10 +197,8 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
     //background element
     parallax_layer bgLayers[BG_LAYER_COUNT];
     
-    //enemy things
+    //enemy maximum jotogulo thakte parbe
     Enemy enemy[max_enemy_num];
-
-    // enemy sobshomoy screen e present thake na tai enemy gs e thakbe na, function call kore use korte hobe
     
     int menu_selection; // 0 for start game 1 diye exit 
     bool quit_game;  
@@ -202,6 +207,9 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
     
     char playerName[25];  
     int nameLetterCount;
+
+    //fonts
+    font cfonts;
 }GS;
 
 
