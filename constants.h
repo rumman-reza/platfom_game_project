@@ -24,7 +24,7 @@
 //different timers
 #define dash_duration .32f
 #define dash_cooldowntimer .6f
-#define attackduration .45f
+#define attackduration .54f
 #define airattackduration .56f
 // texture choto boro korar jonno
 #define SPRITE_SCALE 3.0f
@@ -34,13 +34,13 @@
 #define attackendframe 6    
 //koto gulo ground chunk dekhabe
 #define MaxChunkNum 5
-#define player_attack_power 40.0f
+#define player_attack_power 10.0f
 
 // enemy er jono
 #define enSpeed 900.0f
 #define encooldown 0.96f
-#define attackrange 130.0f
-#define enemy_attack_power 30.0f
+#define attackrange 90.0f
+#define enemy_attack_power 10.0f
 #define max_enemy_num 1
 #define enemy_max_health 60.0f
 #define enemy_invultimer .32f
@@ -51,6 +51,7 @@
 #define PLAYER_MAX_HEALTH 100.0f
 #define HEALTH_DECAY_RATE 4.0f 
 #define player_invul_time .08f
-
+#define player_real_width 17.0f
+#define player_real_height 32.0f
 
 #endif

@@ -38,7 +38,7 @@ typedef struct Player{
     Vector2 initial_position;
     // jump ar air e movement detect korar jonno
     bool isgrounded;
-
+    Vector2 collisionOffset;
     bool isdashing;
     float dashduration;
     float dashcooldowntimer; // ekta dash dewar por koto tuku time por abar dash dite parbe
@@ -153,7 +153,7 @@ typedef struct Enemy{
     bool facing_left;
     bool isgrounded;
     anim enemy_animations[enemy_anim_num];
-    anim_name current_enemy_anim_name;
+    enemy_anim current_enemy_anim_name;
     enemystate state;
     bool isactive;
     

@@ -38,13 +38,12 @@ void updateCombat(GS *gs, float dt){
         anim* e = &en->enemy_animations[en->current_enemy_anim_name];
         if(en->isdead || !en->isactive) continue;
         if(en->state == attacking_enemy && en->current_enemy_anim_name == enemy_attack){
-            if(enemy_attack_start_frame <= e->currentframe && e->currentframe >= enemy_attack_end_frame){
+            if(enemy_attack_start_frame <= e->currentframe && e->currentframe <= enemy_attack_end_frame){
                 Rectangle enemy_hitbox = getEnemyHitbox(en);
                 if(!en->hashitplayerthisswing && CheckCollisionRecs(getPlayerRect(gs),enemy_hitbox)){
                     damagePlayer(gs,enemy_attack_power);                   
-                    en->hashitplayerthisswing=true;                                               // can be changed later
-                } 
-                else en->hashitplayerthisswing = false;          
+                    en->hashitplayerthisswing=true;    
+                }          
             }
         }
     }

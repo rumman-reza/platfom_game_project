@@ -14,4 +14,5 @@ Rectangle getplayerhitbox(GS* gs);
 void hitting(GS* gs,float dt);
 void restrict_left_movement(GS* gs);
 void checkHealthPickup(GS* gs);
+float getPlayerCenterX(GS* gs);
 #endif

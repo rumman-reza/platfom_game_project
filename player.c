@@ -2,6 +2,7 @@
 #include "raymath.h"
 #include"types.h"
 #include"enemy.h"
+#include<stdio.h>
 
 void setplayerstate(GS* gs){
     playerstate newstate;
@@ -46,8 +47,17 @@ void setplayerstate(GS* gs){
 }
 
 Rectangle getPlayerRect(GS* gs){
-    return (Rectangle){gs->player.position.x,gs->player.position.y,gs->player.width,gs->player.height};
+    return (Rectangle){
+        gs->player.position.x + gs->player.collisionOffset.x,
+        gs->player.position.y + gs->player.collisionOffset.y,
+        gs->player.width,
+        gs->player.height
+    };
 }
+float getPlayerCenterX(GS* gs){
+    return gs->player.position.x + gs->player.collisionOffset.x + gs->player.width/2.0f;
+}
+
 void drawPlayerSprite(GS* gs){
     anim *a = &gs->player_animations[gs->current_player_anim_name];
 
@@ -131,11 +141,15 @@ void Gravity(GS* gs,float dt){
     gs->player.velocity.y += gravity*dt;
 }
 void playerMovement(GS* gs,anim* anim,float dt){
+    if(gs->player.isDead || gs->current_player_state==hurting_player){
+        gs->player.position.y = gs->player.position.y + gs->player.velocity.y*dt;
+        return;
+    }
+
     if(gs->player.isdashing){ 
         gs->player.position = (Vector2)Vector2Add(gs->player.position,Vector2Scale(gs->player.velocity,dt));
         return;
     }
-    if(gs->player.isDead || gs->current_player_state==hurting_player) return;
 
     //check button input
     if(IsKeyDown(KEY_D) && gs->player.isgrounded){ 

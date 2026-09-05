@@ -1,6 +1,7 @@
     #include"enemy.h"
     #include"animation.h"
     #include<math.h>
+    #include"player.h"
 
     float timer=0.0f;
 
@@ -10,7 +11,7 @@
 
     Rectangle getEnemyHitbox(Enemy* enemy){
         Rectangle body = getEnemyRect(enemy);
-        float reach = 16.0f;
+        float reach = 50.0f;
         float x = enemy->facing_left ? body.x - reach: body.x + body.width ;
         return (Rectangle){ x, body.y, reach, body.height };
     }
@@ -71,8 +72,8 @@
         
 
         enemy.facing_left = true; // change this
-        enemy.height = tex->idle.height*SPRITE_SCALE*1.8f;
-        enemy.width = tex->idle.height;
+        enemy.height = en_idle->frameHeight*SPRITE_SCALE*1.8f;
+        enemy.width = en_idle->frameWidth*SPRITE_SCALE*1.8f;
         enemy.isactive = true;
         enemy.isgrounded = true;
         enemy.inital_position = (Vector2){s_width,s_height*3.7f/4-enemy.height};
@@ -124,19 +125,15 @@
     void updateEnemy(GS* gs,float dt){
 
         for(int i=0;i<max_enemy_num;i++){
-
-    //testing 
-            timer+=dt;
             Enemy* enemy = &gs->enemy[i];
             
             if(!enemy->isactive) continue;;
 
             Player* player = &gs->player;
 
-            float player_center_x = player->position.x + player->width/2.0f;
+            float player_center_x = getPlayerCenterX(gs);
             float enemey_center_x = enemy->position.x + enemy->width/2.0f;
             float dist = fabsf(player_center_x-enemey_center_x);
-
             enemy->facing_left = (player_center_x<enemey_center_x);
 
             if(enemy->attack_cooldown>=0) enemy->attack_cooldown-=dt;
@@ -145,9 +142,11 @@
             switch (enemy->state)
             {
                 case dead_enemy:{
-                    updateEnemyAnimation(enemy,enemy_dead);
-                    enemy->isactive = false;
-                    enemy->isdead = true;
+                    enemy->velocity.x=0;
+                    if(enemy->enemy_animations[enemy->current_enemy_anim_name].isfinished){
+                        enemy->isactive = false;
+                        enemy->isdead = true;
+                    }
                     break;
                 }
                 case hurting_enemy:{
@@ -158,6 +157,7 @@
                         if(dist<=attackrange){
                             enemy->state = attacking_enemy;
                             enemy->velocity.x = 0;  
+                            enemy->hashitplayerthisswing = false; 
                             updateEnemyAnimation(enemy,enemy_attack);
                             enemy->enemy_animations[enemy->current_enemy_anim_name].currentframe = 0;
                             enemy->enemy_animations[enemy->current_enemy_anim_name].isfinished = 0;
@@ -177,6 +177,7 @@
                         enemy->state = attacking_enemy;
                         enemy->current_enemy_anim_name = enemy_attack;
                         enemy->velocity.x = 0;  
+                        enemy->hashitplayerthisswing = false; 
                         updateEnemyAnimation(enemy,enemy_attack);
                         //age thekei chilo tai nije theke zero korte hobe
                         enemy->enemy_animations[enemy->current_enemy_anim_name].currentframe = 0;
@@ -198,12 +199,16 @@
                         break;
                     }
                     if(enemy->attack_cooldown<=0){
-                        // enemy->position.x += 19;
-                        updateEnemyAnimation(enemy,enemy_attack);
-                        enemy->enemy_animations[enemy->current_enemy_anim_name].currentframe = 0;
-                        enemy->enemy_animations[enemy->current_enemy_anim_name].isfinished = 0;
-                        enemy->attack_cooldown = encooldown;
-                        
+                        if (dist <= attackrange){ 
+                            enemy->hashitplayerthisswing = false; 
+                            updateEnemyAnimation(enemy, enemy_attack);
+                            enemy->enemy_animations[enemy->current_enemy_anim_name].currentframe = 0;
+                            enemy->enemy_animations[enemy->current_enemy_anim_name].isfinished = 0;
+                            enemy->attack_cooldown = encooldown;
+                        } else {
+                            enemy->state = walking_enemy;
+                            updateEnemyAnimation(enemy, enemy_running);
+                        }
                     }
                     // else if(enemy->current_enemy_anim_name == enemy_attack && enemy->enemy_animations[enemy_attack].currentframe>= enemy->enemy_animations[enemy_attack].framecount - 1){
                         
@@ -243,7 +248,6 @@
             updateEnemyAnimation(e,enemy_dead);
         } else {
             e->state = hurting_enemy;
-            e->current_enemy_anim_name = enemy_hurt;
             // e->currentFrame = 0;
             updateEnemyAnimation(e,enemy_hurt);
         }

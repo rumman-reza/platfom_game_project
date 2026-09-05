@@ -10,6 +10,7 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
     gs->player_animations[player_idle].timedependent = true;
     gs->player_animations[player_idle].looping = true;
     gs->player_animations[player_idle].isfinished = false;   
+    
     gs->player_animations[player_running].tex = tex->running;
     gs->player_animations[player_running].framecount = 8;
     gs->player_animations[player_running].frameduration = 0.08f;
@@ -40,7 +41,7 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
     anim* attack_ani = &gs->player_animations[attack];
     attack_ani->tex = tex->attack1;
     attack_ani->framecount = 9;
-    attack_ani->frameduration = .05f;
+    attack_ani->frameduration = .06f;
     attack_ani->frameHeight = attack_ani->tex.height;
     attack_ani->frameWidth = attack_ani->tex.width/14;
     attack_ani->looping = true;
@@ -70,9 +71,9 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
     anim* p_hurt = &gs->player_animations[player_hurt];
     p_hurt->tex = tex->hurt;
     p_hurt->framecount = 1;
-    p_hurt->frameduration = 0.08f;
+    p_hurt->frameduration = 2.0f;
     p_hurt->frameHeight = tex->hurt.height;
-    p_hurt->frameWidth = tex->hurt.width/p_die->framecount;
+    p_hurt->frameWidth = tex->hurt.width/p_hurt->framecount;
     p_hurt->timedependent = true;
     p_hurt->looping = false;
     p_hurt->isfinished = false;
