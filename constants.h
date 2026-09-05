@@ -39,7 +39,7 @@
 // enemy er jono
 #define enSpeed 900.0f
 #define encooldown 0.96f
-#define attackrange 90.0f
+#define attackrange 120.0f
 #define enemy_attack_power 10.0f
 #define max_enemy_num 1
 #define enemy_max_health 60.0f

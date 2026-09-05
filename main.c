@@ -25,14 +25,21 @@ int main(){
         float dt = GetFrameTime();
         updateGame(&gs,&anim,dt);
         BeginDrawing();
-        
         ClearBackground(RAYWHITE);
 
-        BeginMode2D(gs.camera);
-
-        drawGame(&gs);
-        EndMode2D();
-        drawHealthUI(&gs);
+        if (gs.currentscreen == MENU) {
+            drawMenu(&gs); //menu er defination ache game.c te prototype game.h
+        } 
+        else if (gs.currentscreen == NAME_ENTRY) {
+            // name screen draw hobe ekhane 
+            drawNameEntry(&gs);
+        }
+        else if (gs.currentscreen == GAME) {
+            BeginMode2D(gs.camera);
+            drawGame(&gs);
+            EndMode2D();
+            drawHealthUI(&gs); 
+        }
         EndDrawing();
     }
     unloadTexture(&tex);

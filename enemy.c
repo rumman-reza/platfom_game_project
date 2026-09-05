@@ -174,9 +174,9 @@
 
                 case walking_enemy:{
                     if(dist<=attackrange){
+                        enemy->velocity.x = 0;  
                         enemy->state = attacking_enemy;
                         enemy->current_enemy_anim_name = enemy_attack;
-                        enemy->velocity.x = 0;  
                         enemy->hashitplayerthisswing = false; 
                         updateEnemyAnimation(enemy,enemy_attack);
                         //age thekei chilo tai nije theke zero korte hobe
