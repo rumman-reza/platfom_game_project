@@ -90,7 +90,6 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D enemy_attack;
     Texture2D enemy_dead;
     Texture2D enemy_hurt;
-    
 }tex;
 
 
@@ -178,6 +177,19 @@ typedef struct Enemy{
     
 } Enemy;
 
+typedef struct poison_gas{
+    Vector2 position;
+    Texture2D pgas_anim[12];
+    Vector2 velocity;
+    float pgas_damage;
+    int current_texture;
+    float frameduration;
+    float frametimer;
+
+    float attackcooldown;
+    float attacktimer;
+} pgas;
+
 typedef struct gameState // main struct of this game, ekhane shob rokom game er element ache 
 {
     gamescreen currentscreen; // game menu te naki game er vitore ta bujhai
@@ -214,6 +226,9 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
 
     //testing timer
     float timer;
+
+    // pgas things
+    pgas pgas;
 }GS;
 
 
@@ -224,5 +239,7 @@ typedef struct HealthItem {
     float healAmount; // koto kore health barbe seta 
     bool active;      // healing obj screen e ache naki chole gese 
 } HealthItem;
+
+
 
 #endif

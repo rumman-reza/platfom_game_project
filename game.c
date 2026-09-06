@@ -39,6 +39,8 @@
             // DrawRectangleLinesEx(getEnemyHitbox(&gs->enemy[i]),20,BLACK);
             // DrawRectangleLinesEx(getEnemyRect(&gs->enemy[i]),10,BLUE);
         }
+        drawPgasSprite(gs);
+
     }
 
     void initGame(GS* gs,tex* tex,anim* anim){
@@ -124,6 +126,13 @@
         for(int i=0;i<max_enemy_num;i++){
             gs->enemy[i] = loadEnemy(tex);
         }
+
+        // setup poison gas cloud
+        gs->pgas.position = (Vector2){0,ground_y-gs->pgas.pgas_anim[0].height+50.0f};
+        gs->pgas.pgas_damage = 20.0f; 
+        gs->pgas.frameduration = 0.08f;
+        gs->pgas.attackcooldown = 2.0f;
+        // all other properties of gs are set to zero by default
     }
     void unloadenemy(GS* gs){
         for(int i=0;i<max_enemy_num;i++){
@@ -147,6 +156,10 @@
 
         updateGround(gs);
         cameraMovement(gs);
+
+        move_pgas(gs,dt);
+        updatePgasAnimation(gs,dt);
+
 
         float cameradelta = gs->camera.target.x - gs->last_camera_x;
         updateParallax(gs,cameradelta);

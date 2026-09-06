@@ -12,4 +12,7 @@ Rectangle getEnemyHitbox(Enemy* enemy);
 void damageEnemy(Enemy* enemy,float amount);
 void updateEnemyAnimations(GS* gs,float dt);
 void updateEnemyInvultimer(GS* gs,float dt);
+void move_pgas(GS* gs,float dt);
+Rectangle getPgasRect(GS* gs);
+void drawPgasSprite(GS* gs);
 #endif

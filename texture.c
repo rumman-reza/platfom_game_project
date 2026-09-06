@@ -53,5 +53,7 @@ void loadTexture(tex* tex, GS* gs){
     gs->cfonts.menu_font1 = LoadFontEx("assets/fonts/Pixelmania.ttf",200,0,0);
     gs->cfonts.menu_font2 = LoadFontEx("assets/fonts/StayPixelDEMO.ttf",200,0,0);
 
-
+    for(int i=1;i<=12;i++){
+        gs->pgas.pgas_anim[i-1] = LoadPixelTexture(TextFormat("assets/PNG/Posionous_Smoke_Frame_%d.png",i));
+    }
 }

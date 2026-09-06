@@ -47,4 +47,11 @@ void updateCombat(GS *gs, float dt){
             }
         }
     }
+    // pgas er jonno
+    gs->pgas.attacktimer-=dt;
+    if(gs->pgas.attacktimer<=0) gs->pgas.attacktimer=0;
+    if(CheckCollisionRecs(getPlayerRect(gs),getPgasRect(gs)) && gs->pgas.attacktimer==0){
+        damagePlayer(gs,gs->pgas.pgas_damage);
+        gs->pgas.attacktimer = gs->pgas.attackcooldown;
+    }
 }

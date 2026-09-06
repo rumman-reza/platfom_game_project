@@ -98,5 +98,12 @@ void updateAnimation(anim* a,float dt){
 
         if(!a->looping && a->currentframe >= a->framecount-1) a->isfinished = true;
     }
+}
 
+void updatePgasAnimation(GS* gs,float dt){
+    gs->pgas.frametimer += dt;
+    if(gs->pgas.frametimer>=gs->pgas.frameduration){
+        gs->pgas.current_texture = (gs->pgas.current_texture+1)%12;
+        gs->pgas.frametimer = 0;
+    }
 }

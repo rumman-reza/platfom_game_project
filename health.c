@@ -47,7 +47,13 @@ void drawHealthUI(GS* gs){
     // health index koto health ase seta  
     DrawText(TextFormat("HP: %d/%d", (int)gs->player.health, (int)gs->player.maxHealth), posX, posY + barHeight + 5, 20, BLACK);
 
-    DrawText(TextFormat("%d%%", displayPercentage), posX, posY + barHeight + 5, 20, WHITE);
+    DrawText(TextFormat("%d%%", displayPercentage), posX, posY + barHeight + 5, 20, WHITE);\
+
+    const char* heroname = TextFormat("HERO: %s",gs->playerName);
+    int nameY = posY+barHeight+45;
+    DrawTextEx(gs->cfonts.menu_font2,heroname,(Vector2){posX+3,nameY+3},40,0,BLACK);
+    DrawTextEx(gs->cfonts.menu_font2,heroname,(Vector2){posX,nameY},40,0,LIGHTGRAY);
+
 }
 
 
