@@ -78,7 +78,7 @@
 
 
     //set camera 
-        gs->camera.offset = (Vector2){s_width/2.0f,0.0f};
+        gs->camera.offset = (Vector2){s_width/2.0f-200.0f,0.0f};
         gs->camera.rotation = 0.0f;
         gs->camera.zoom = 1.0f;
 

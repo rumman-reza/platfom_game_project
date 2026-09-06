@@ -266,7 +266,7 @@ void move_pgas(GS* gs,float dt){
         }
         else gs->pgas.position.x = gs->pgas.position.x;
     }
-    else gs->pgas.velocity.x = 800.0f;
+    else gs->pgas.velocity.x = 400.0f;
 
     gs->pgas.position = Vector2Add(gs->pgas.position,Vector2Scale(gs->pgas.velocity,dt));
 
@@ -285,7 +285,7 @@ void drawPgasSprite(GS* gs){
     Rectangle source = (Rectangle){
         .x = 0,
         .y = 0,
-        .width = gs->pgas.pgas_anim[gs->pgas.current_texture].width,
+        .width = (gs->player.facing_left)?-gs->pgas.pgas_anim[gs->pgas.current_texture].width:gs->pgas.pgas_anim[gs->pgas.current_texture].width,
         .height = gs->pgas.pgas_anim[gs->pgas.current_texture].height
     };
     Rectangle dest = (Rectangle){
