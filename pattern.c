@@ -9,14 +9,15 @@ static const char* floatingPlatform[] = {
     "..........PP....",
     ".......PP.......",
     "..PP............",
-    "................",
+    ".E..............",
     "GG....GGGGGG...."
 };
 static const char* enemyAmbush[] = {
-    "..E.....E...",
-    "GGG..GGGGGGG" };
+     "...E.....E",
+     "GGGGGGGGGG" };
 static const char* spikeGaunlet[] = {
-    "GSG.GS.GGS"
+    ".S.....S...S..",
+    "GGG...GG...GGG"
 };
 //storing the patterns in all in one struct
 
@@ -84,17 +85,17 @@ void spawn_pattern(GS* gs,const pattern *p,float baseX,float groundY,float scree
                 }
                 case 'E':
                 {
-                    if(!isGroundRow){
-                        TraceLog(LOG_WARNING,"Pattern: 'E' at row %d not on ground row, skipping (enemy AI is ground-only)",row);
-                        break;
-                    }
+                    // if(!isGroundRow){
+                    //     TraceLog(LOG_WARNING,"Pattern: 'E' at row %d not on ground row, skipping (enemy AI is ground-only)",row);
+                    //     break;
+                    // }
                     spawnEnemy(gs,colX,rowY);
                     break;
                 }
                 case 'S':
                 {
-                    float spikeHeight = 30.0f;
-                    addspike(gs,colX,rowY - spikeHeight,pattern_tile_width,spikeHeight);
+                    float spikeHeight = patternheight;
+                    addspike(gs,colX,rowY,pattern_tile_width,90);
                     break;
                 }
 

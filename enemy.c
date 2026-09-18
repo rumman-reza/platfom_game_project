@@ -70,8 +70,18 @@ Enemy loadEnemy(tex* tex){
     en_hurt->looping = false;
     en_hurt->timedependent = true;
     en_hurt->isfinished = false;  
+
     
+    enemy.height = en_idle->frameHeight * SPRITE_SCALE * 1.8f;
+    enemy.width  = en_idle->frameWidth  * SPRITE_SCALE * 1.8f;
+    enemy.hashitplayerthisswing = false;
+    enemy.attack_cooldown = 0.0f;
+    enemy.invultimer = 0.0f;
+    enemy.state = walking_enemy;
+    enemy.health = enemy_max_health;
+
     return enemy;
+
 
 }
 void UnloadEnemyAnims(Enemy *e) {
@@ -310,13 +320,10 @@ void spawnEnemy(GS* gs, float x, float groundY){
 
         e->position = (Vector2){ x, groundY - e->height };
         e->velocity = (Vector2){0,0};
-        e->health = enemy_max_health;
+   
         e->isdead = false;
         e->isactive = true;
-        e->hashitplayerthisswing = false;
-        e->attack_cooldown = 0.0f;
-        e->invultimer = 0.0f;
-        e->state = walking_enemy;
+    
         updateEnemyAnimation(e, enemy_running);
         return; // one spawn per call — pattern.c calls this once per 'E' tile
     }

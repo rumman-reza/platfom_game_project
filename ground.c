@@ -115,27 +115,20 @@ void drawSpikes(GS* gs)
             continue;
 
         Rectangle r = gs->spikes[i].rect;
-
-        Vector2 top = {
-            r.x + r.width * 0.5f,
-            r.y
-        };
-
-        Vector2 bottomL = {
-            r.x,
-            r.y + r.height
-        };
-
-        Vector2 bottomR = {
-            r.x + r.width,
-            r.y + r.height
-        };
-
-        DrawTriangle(
-            bottomL,
-            bottomR,
-            top,
-            RED
-        );
+        
+        Rectangle source = {
+        .x = 0,
+        .y = 0,
+        .width  = 16,
+        .height = 16
+    };
+    Rectangle dest = {
+        .x = r.x,
+        .y = r.y,
+        .width  = r.width,
+        .height = r.height
+    };
+    DrawTexturePro(gs->spikes[i].spike_sprite, source, dest, (Vector2){0,0}, 0.0f, WHITE);
+        
     }
 }

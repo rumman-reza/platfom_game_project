@@ -2,7 +2,6 @@
 #include<stdbool.h>
 #include<math.h>
 
-// add enemy hurt anim eation and fix enemy damage code and find out why it's not working
 #include"types.h"
 #include"game.h"
 #include"enemy.h"

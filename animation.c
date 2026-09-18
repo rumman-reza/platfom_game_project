@@ -79,6 +79,8 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
     p_hurt->isfinished = false;
 
 
+    
+
     gs->current_player_anim_name = player_idle;
 
 }

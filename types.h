@@ -90,6 +90,8 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D enemy_attack;
     Texture2D enemy_dead;
     Texture2D enemy_hurt;
+
+    Texture2D spike_sprite;
 }tex;
 
 
@@ -194,6 +196,7 @@ typedef struct poison_gas{
 
 typedef struct spike{
     Rectangle rect;
+    Texture2D spike_sprite;
     bool isactive;
 }spike;
 

@@ -40,7 +40,7 @@
 
     //drawing enemy sprites
         for(int i=0;i<max_enemy_num;i++){
-            if(gs->enemy[i].isactive) drawEnemy(&gs->enemy[i]);
+           if(gs->enemy[i].isactive) drawEnemy(&gs->enemy[i]);
             // DrawRectangleLinesEx(getEnemyHitbox(&gs->enemy[i]),20,BLACK);
             // DrawRectangleLinesEx(getEnemyRect(&gs->enemy[i]),10,BLUE);
         }
