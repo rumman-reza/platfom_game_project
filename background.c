@@ -2,7 +2,7 @@
 #include<math.h>
 
 void drawBackground(GS* gs){
-    float groundTop = gs->gchunk[0].groundChunkRect.y;
+    float groundTop = ground_y;
 
     for(int i=0;i<BG_LAYER_COUNT;i++){
         parallax_layer *l = &gs->bgLayers[i];

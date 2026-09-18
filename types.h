@@ -190,6 +190,14 @@ typedef struct poison_gas{
     float attacktimer;
 } pgas;
 
+
+
+typedef struct spike{
+    Rectangle rect;
+    bool isactive;
+}spike;
+
+
 typedef struct gameState // main struct of this game, ekhane shob rokom game er element ache 
 {
     gamescreen currentscreen; // game menu te naki game er vitore ta bujhai
@@ -229,6 +237,16 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
 
     // pgas things
     pgas pgas;
+
+    //traps and pattern stuff
+    spike spikes[max_spikes];
+    int spike_index;
+    float spike_cooldown;
+    
+    float lastPatternEndX;
+    float gapBetweenTheNextPattern;
+    
+
 }GS;
 
 

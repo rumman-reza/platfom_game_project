@@ -33,7 +33,7 @@
 #define attackstartframe 3
 #define attackendframe 6    
 //koto gulo ground chunk dekhabe
-#define MaxChunkNum 5
+#define MaxChunkNum 30
 #define player_attack_power 10.0f
 
 // enemy er jono
@@ -41,11 +41,13 @@
 #define encooldown 0.96f
 #define attackrange 120.0f
 #define enemy_attack_power 10.0f
-#define max_enemy_num 1
+#define max_enemy_num 40
 #define enemy_max_health 60.0f
 #define enemy_invultimer .32f
 #define enemy_attack_start_frame 6
 #define enemy_attack_end_frame 10
+#define spikecooldown .60f
+#define spike_damage 25.0f
 
 // health  maximum and koto kore kombe seta 
 #define PLAYER_MAX_HEALTH 100.0f
@@ -54,4 +56,12 @@
 #define player_real_width 17.0f
 #define player_real_height 32.0f
 
+
+// obstacles and traps
+#define pattern_tile_width 80.0f
+#define platform_width 180.0f
+#define patternheight 40.0f
+#define gap_height 80.0f
+#define max_spikes 30
+#define ground_y  (GetScreenHeight()*3.7f/4)
 #endif

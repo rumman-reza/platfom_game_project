@@ -8,12 +8,14 @@
     #include "camera.h"
     #include "health.h"
     #include"combat.h"
+    #include"types.h"
+
     void drawGame(GS* gs){
     
     //drawing background elements
 
     drawBackground(gs);
-    DrawRectangle(gs->camera.target.x-s_width,0,2*s_width,s_height,GetColor(0x00000060));
+    DrawRectangle(gs->camera.target.x-s_width,0,2*s_width,s_height,GetColor(0x00000080));
 
     //drawing the ground rectangles;
     for(int i=0;i<MaxChunkNum;i++){
@@ -27,26 +29,28 @@
             DrawRectangleRec(gs->gchunk[i].healthItemRect, GREEN);
         }
     }    
+
+    drawSpikes(gs);
+
     //drawing player sprite
 
         drawPlayerSprite(gs);
-        // DrawRectangleLinesEx(getplayerhitbox(gs),20,BLACK);
+        DrawRectangleLinesEx(getGroundcheckRec(gs),20,BLACK);
         // DrawRectangleLinesEx(getPlayerRect(gs),10,(gs->player.isattacking)?RED:BLUE);
 
     //drawing enemy sprites
         for(int i=0;i<max_enemy_num;i++){
-            drawEnemy(&gs->enemy[i]);
+            if(gs->enemy[i].isactive) drawEnemy(&gs->enemy[i]);
             // DrawRectangleLinesEx(getEnemyHitbox(&gs->enemy[i]),20,BLACK);
             // DrawRectangleLinesEx(getEnemyRect(&gs->enemy[i]),10,BLUE);
         }
+
         drawPgasSprite(gs);
 
     }
 
     void initGame(GS* gs,tex* tex,anim* anim){
 
-        float ground_y = s_height*3.7f/4;
-        float ground_height = s_height-ground_y;
         SetMouseCursor(MOUSE_CURSOR_CROSSHAIR);
 
     // load textures
@@ -85,30 +89,25 @@
         float player_center_x = gs->player.position.x + gs->player.collisionOffset.x + gs->player.width / 2.0f;
         gs->camera.target = (Vector2){player_center_x-camera_half_deadzone,0.0f};
         gs->last_camera_x = gs->camera.target.x;
-    // setup initial Ground
-        gs->next_spawn_point=-s_width;
-        gs->chunk_index=0;
-
-    //heath function er variable gulo
+        //heath function er variable gulo
         gs->player.maxHealth = PLAYER_MAX_HEALTH;
         gs->player.health = PLAYER_MAX_HEALTH;
         gs->player.isDead = false;
+        
+        // INITIAL GROUND / PATTERN GENERATION
+        gs->chunk_index = 0;
 
+        // Start spawning from the beginning of the world
+        gs->next_spawn_point = -s_width;
 
-    for(int i=0;i<MaxChunkNum;i++){
-            gs->gchunk[i].groundChunkRect = (Rectangle){gs->next_spawn_point,ground_y,s_width,ground_height};
-            gs->gchunk[i].hasHealthItem = true; 
-            gs->gchunk[i].healthItemCollected = false;
-            gs->gchunk[i].healthItemRect = (Rectangle){
-                .x = gs->next_spawn_point + (s_width * 0.8f),
-                .y = ground_y - 40.0f,
-                .width = 30.0f,
-                .height = 30.0f
-            };
-            
-            
-            gs->next_spawn_point+=s_width;
-        }
+        // No pattern has been spawned yet
+        gs->lastPatternEndX = gs->next_spawn_point;
+
+        // Distance before the first pattern
+        gs->gapBetweenTheNextPattern = 2*s_width;
+
+        // Generate the initial world
+        updateGround(gs);
         // setup background layers — farthest (slowest apparent motion) to nearest
         float bg_scrollfactors[BG_LAYER_COUNT] = {0.1f, 0.25f, 0.45f,0.65f , 0.85f,.95f};
         
@@ -122,14 +121,15 @@
                 .height = l->tex.height
             };
         }
-        // spawing a random enemy
+        // loading all the enemy information at the start of the game 
         for(int i=0;i<max_enemy_num;i++){
             gs->enemy[i] = loadEnemy(tex);
+            gs->enemy[i].isactive = false; // spawn_pattern() activates slots as chunks generate
         }
 
         // setup poison gas cloud
-        gs->pgas.position = (Vector2){0,ground_y-gs->pgas.pgas_anim[0].height+50.0f};
-        gs->pgas.pgas_damage = 20.0f; 
+        gs->pgas.position = (Vector2){-200.0f,ground_y-gs->pgas.pgas_anim[0].height+50.0f};
+        gs->pgas.pgas_damage = 10.0f; 
         gs->pgas.frameduration = 0.08f;
         gs->pgas.attackcooldown = 2.0f;
         // all other properties of gs are set to zero by default
@@ -149,6 +149,7 @@
         groundedCheck(gs,dt);
         setplayerstate(gs);
         updateJumpFrame(gs);
+        DamageFromSpikes(gs,dt);
         updateAnimation(&gs->player_animations[gs->current_player_anim_name],dt);
         
         updateHealth(gs,dt);

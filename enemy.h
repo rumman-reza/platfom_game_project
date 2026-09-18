@@ -15,4 +15,9 @@ void updateEnemyInvultimer(GS* gs,float dt);
 void move_pgas(GS* gs,float dt);
 Rectangle getPgasRect(GS* gs);
 void drawPgasSprite(GS* gs);
+void spawnEnemy(GS* gs, float x, float groundY);
+
+//traps and stuff
+
+void DamageFromSpikes(GS* gs,float dt);
 #endif
