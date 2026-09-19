@@ -4,9 +4,11 @@
 #include"enemy.h"
 
 //defining the patterns
-static const char* gapspike[] = { "GG...SGG.."};
+static const char* gapspike[] = { 
+    ".....S....",
+    "GG...GGG.."};
 static const char* floatingPlatform[] = {
-    "..........PP....",
+    ".......H..PP....",
     ".......PP.......",
     "..PP............",
     ".E..............",
@@ -94,9 +96,12 @@ void spawn_pattern(GS* gs,const pattern *p,float baseX,float groundY,float scree
                 }
                 case 'S':
                 {
-                    float spikeHeight = patternheight;
-                    addspike(gs,colX,rowY,pattern_tile_width,90);
+                    float spikeHeight = 80.0f;
+                    addspike(gs,colX,rowY,pattern_tile_width,spikeHeight);
                     break;
+                }
+                case 'H':{
+                    spawn_healthrect(gs,colX,rowY,pattern_tile_width);
                 }
 
                 default:

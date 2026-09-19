@@ -141,12 +141,13 @@
     }
 
     void updateGameplay(GS* gs,anim* anim,float dt){
+        player_has_fallen(gs);
         playerDashUpdate(gs,dt);
         Gravity(gs,dt);
         hitting(gs,dt);
         playerMovement(gs,anim,dt);
         restrict_left_movement(gs);
-        groundedCheck(gs,dt);
+        groundedCheck(gs);
         setplayerstate(gs);
         updateJumpFrame(gs);
         DamageFromSpikes(gs,dt);
@@ -355,4 +356,10 @@ void drawGameover(GS* gs){
     int text_width = MeasureText(gameover,80);
     DrawTextEx(gs->cfonts.menu_font2,gameover,(Vector2){s_width/2.0f-text_width/2.0f,s_height/2.0f},80,0,RED);
 
+}
+
+void player_has_fallen(GS* gs){
+    if(getPlayerRect(gs).y>=s_height){
+        gs->player.isDead = true;
+    }
 }

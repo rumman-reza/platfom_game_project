@@ -15,7 +15,7 @@ Rectangle getGroundcheckRec(GS* gs){
     return groundcheckrec;
 }
 
-void groundedCheck(GS* gs, float dt){
+void groundedCheck(GS* gs){
     gs->player.isgrounded = false;
     for(int i = 0; i < MaxChunkNum; i++){
         
@@ -39,22 +39,26 @@ void pushgroundchunk(GS *gs,float x,float y,float height,float width,bool has_he
             .height = height
         };
 
-    gs->gchunk[index].hasHealthItem = has_health_item;
+        
+        
+    gs->chunk_index = (gs->chunk_index + 1) % MaxChunkNum;
+}
+
+void spawn_healthrect(GS* gs,float x,float y,float width){
+    int index = gs->chunk_index;
+    
+    gs->gchunk[index].hasHealthItem = true;
+
     gs->gchunk[index].healthItemCollected = false;
 
-    if (has_health_item)
-    {
-        gs->gchunk[index].healthItemRect =
-            (Rectangle){
-                .x = x + width * 0.5f - 15.0f,
-                .y = y - 30.0f,
-                .width = 30.0f,
-                .height = 30.0f};
-    }
-
-    gs->chunk_index =
-        (gs->chunk_index + 1) % MaxChunkNum;
+    gs->gchunk[index].healthItemRect = (Rectangle){
+        .x = x + width * 0.5f - 15.0f,
+        .y = y - 30.0f,
+        .width = 30.0f,
+        .height = 30.0f
+    };
 }
+
 
 void addspike(GS* gs,float x,float y,float width,float height)
 {
