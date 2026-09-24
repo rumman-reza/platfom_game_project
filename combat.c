@@ -55,3 +55,17 @@ void updateCombat(GS *gs, float dt){
         gs->pgas.attacktimer = gs->pgas.attackcooldown;
     }
 }
+
+
+
+void DamageFromBombs(GS* gs) {
+    for (int i = 0; i < max_bombs; i++) {
+        if (!gs->bombs[i].isactive) continue;
+
+        // বম্বের সাথে প্লেয়ারের ধাক্কা লাগলে
+        if (CheckCollisionRecs(getPlayerRect(gs), gs->bombs[i].rect)) {
+            damagePlayer(gs, bomb_damage); // ৫০ ড্যামেজ দিবে (bomb_damage)
+            gs->bombs[i].isactive = false; // বম্বটি বিস্ফোরিত হয়ে গায়েব হয়ে যাবে
+        }
+    }
+}

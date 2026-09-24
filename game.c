@@ -47,6 +47,8 @@
 
     drawSpikes(gs);
 
+    drawBombs(gs, textures);
+
     //drawing player sprite
 
         drawPlayerSprite(gs);
@@ -182,10 +184,11 @@
         setplayerstate(gs);
         updateJumpFrame(gs);
         DamageFromSpikes(gs,dt);
+        DamageFromBombs(gs);
         updateAnimation(&gs->player_animations[gs->current_player_anim_name],dt);
         
         updateHealth(gs,dt);
-        checkHealthPickup(gs); // collision ditect check 
+        checkHealthPickup(gs); // collidrawsion ditect check 
 
         updateGround(gs);
         cameraMovement(gs);
@@ -250,6 +253,12 @@ void restartGame(GS* gs) {
         gs->spikes[i].isactive = false;
     }
 
+    //bomb
+
+    for (int i = 0; i < max_bombs; i++) {
+        gs->bombs[i].isactive = false;
+    }
+    //
     // Poison gas reset
     gs->pgas.position = (Vector2){-200.0f, ground_y - gs->pgas.pgas_anim[0].height + 50.0f};
 

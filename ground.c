@@ -106,6 +106,14 @@ void updateGround(GS* gs)
         {
             pushgroundchunk(gs,gs->next_spawn_point,ground_y,s_height - ground_y,s_width, true);
 
+            
+            if (GetRandomValue(1, 100) <= 10) { 
+                
+                 float bombX = gs->next_spawn_point + (float)GetRandomValue(0, s_width - bomb_width);
+                 float bombY = ground_y - bomb_height;
+                 addbomb(gs, bombX, bombY, bomb_width, bomb_height);
+            }
+
             gs->next_spawn_point += s_width;
         }
     }
@@ -134,5 +142,37 @@ void drawSpikes(GS* gs)
     };
     DrawTexturePro(gs->spikes[i].spike_sprite, source, dest, (Vector2){0,0}, 0.0f, WHITE);
         
+    }
+}
+
+
+
+void addbomb(GS* gs, float x, float y, float width, float height) {
+    int index = gs->bomb_index;
+    gs->bombs[index].rect = (Rectangle){
+        .x = x,
+        .y = y,
+        .width = width,
+        .height = height
+    };
+    gs->bombs[index].isactive = true;
+    gs->bomb_index = (gs->bomb_index + 1) % max_bombs;
+}
+
+void drawBombs(GS* gs, tex* textures) {
+    for (int i = 0; i < max_bombs; i++) {
+        if (!gs->bombs[i].isactive) continue;
+
+        Rectangle r = gs->bombs[i].rect;
+        
+// Image load na holeo jeno lal box dekha jay   (Debuger jonno)
+        // DrawRectangleRec(r, RED); 
+
+        // Jodi bomb  sprite load hoye thake, tobe tar upor image ta draw hobe
+        if (textures->bomb_sprite.id != 0) {
+            Rectangle source = {0, 0, textures->bomb_sprite.width, textures->bomb_sprite.height};
+            Rectangle dest = {r.x, r.y, r.width, r.height};
+            DrawTexturePro(textures->bomb_sprite, source, dest, (Vector2){0,0}, 0.0f, WHITE);
+        }
     }
 }

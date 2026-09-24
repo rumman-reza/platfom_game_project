@@ -74,8 +74,8 @@
 //bomb
 #define max_bombs 20
 #define bomb_damage 50.0f
-#define bomb_width 40.0f  
-#define bomb_height 40.0f
+#define bomb_width 80.0f  
+#define bomb_height 80.0f
 
 
 #endif  

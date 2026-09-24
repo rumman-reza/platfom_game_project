@@ -22,6 +22,8 @@ void unloadTexture(tex* tex){
 
     UnloadTexture(tex->health_item);
 
+    UnloadTexture(tex->bomb_sprite);
+
     // UnloadFont(gs->cfonts.menu_font3);
 }
 
@@ -67,4 +69,5 @@ void loadTexture(tex* tex, GS* gs){
     }
     tex->health_item = LoadPixelTexture("assets/sprites/health_item.png");
    
+    tex->bomb_sprite = LoadPixelTexture("assets/sprites/bomb.png");
 }

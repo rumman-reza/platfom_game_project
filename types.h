@@ -95,6 +95,8 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D spike_sprite;
 
     Texture2D health_item;
+
+    Texture2D bomb_sprite;
 }tex;
 
 
@@ -207,6 +209,12 @@ typedef struct spike{
     bool isactive;
 }spike;
 
+typedef struct bomb {
+    Rectangle rect;
+    bool isactive;
+} bomb;
+
+
 typedef struct {
     char name[25];
     int  score;
@@ -276,6 +284,10 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
     bool isNewHighScore;
 
     FloatingText floatTexts[10];
+    
+    bomb bombs[max_bombs];
+    int bomb_index;
+    
 }GS;
 
 

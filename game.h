@@ -21,7 +21,14 @@ void drawGameover(GS* gs);
 void updatescore(GS* gs);
 void drawScoreHUD(const GS* gs);
 
-void restartGame(GS* gs);
 
+
+void addbomb(GS* gs, float x, float y, float width, float height);
+void drawBombs(GS* gs, tex* textures);
+
+
+
+
+void restartGame(GS* gs);
 
 #endif 

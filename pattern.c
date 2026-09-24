@@ -104,7 +104,11 @@ void spawn_pattern(GS* gs,const pattern *p,float baseX,float groundY,float scree
                     spawn_healthrect(gs,colX,rowY,pattern_tile_width);
                     break;
                 }
-
+                case 'B': 
+                {
+                    addbomb(gs, colX, rowY + (pattern_height - bomb_height), bomb_width, bomb_height);
+                    break;
+                }
                 default:
                     TraceLog(LOG_WARNING,"Pattern: unknown char '%c' at row %d col %d",line[col],row,col);
                     break;
