@@ -2,15 +2,16 @@
 #include<stdbool.h>
 #include<math.h>
 
-
+// add enemy hurt animation and fix enemy damage code and find out why it's not working
 #include"types.h"
 #include"game.h"
 #include"enemy.h"
 #include"texture.h"
+#include"animation.h"
 #include "health.h"
 int main(){
     
-    InitWindow(1920,900,"practise");
+    InitWindow(1920,1080,"Epic Adventure");
     SetTargetFPS(60);
     ToggleBorderlessWindowed();
     // structure gulo define kora and 0 diye initialize kora
@@ -19,17 +20,13 @@ int main(){
     anim anim = {0};
     // game er shob kichu initialize kora 
     initGame(&gs,&tex,&anim);
-    Enemy testenemy = loadEnemy(&tex);
-    
+
     while(!WindowShouldClose() && !gs.quit_game){
         
         float dt = GetFrameTime();
         updateGame(&gs,&anim,dt);
-        updateEnemy(&testenemy,dt);
-     
-     
         BeginDrawing();
-      ClearBackground(RAYWHITE);
+        ClearBackground(RAYWHITE);
 
         if (gs.currentscreen == MENU) {
             drawMenu(&gs); //menu er defination ache game.c te prototype game.h
@@ -41,15 +38,13 @@ int main(){
         else if (gs.currentscreen == GAME) {
             BeginMode2D(gs.camera);
             drawGame(&gs);
-            drawEnemy(&testenemy);
             EndMode2D();
-
             drawHealthUI(&gs); 
         }
         EndDrawing();
     }
     unloadTexture(&tex);
-    UnloadEnemyAnims(&testenemy); 
+    unloadenemy(&gs);
     CloseWindow();
     
 }

@@ -12,4 +12,6 @@ void drawMenu(GS* gs);
 //game 
 void updateNameEntry(GS* gs);
 void drawNameEntry(GS* gs);
+void unloadenemy(GS* gs);
+
 #endif 
