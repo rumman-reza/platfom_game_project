@@ -60,4 +60,6 @@ void loadTexture(tex* tex, GS* gs){
     for(int i=0;i<max_spikes;i++){
         gs->spikes[i].spike_sprite = LoadPixelTexture("assets/sprites/spike_sprite.png");
     }
+
+    tex->floating_platform = LoadPixelTexture("assets/background_elements/floating_platform.png");
 }

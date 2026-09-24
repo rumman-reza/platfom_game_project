@@ -74,6 +74,8 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D woods_third;
     Texture2D Woods_fourth;
     Texture2D Bush_background;
+    Texture2D floating_platform;
+
 
     // player textures    
     Texture2D idle;
