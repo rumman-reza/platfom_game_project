@@ -8,11 +8,17 @@
     #include "camera.h"
     #include "health.h"
     #include"combat.h"
-    void drawGame(GS* gs){
+    #include"types.h"
+    #include "score.h"
 
+
+    void drawGame(GS* gs){
+    
     //drawing background elements
 
-        drawBackground(gs);
+    drawBackground(gs);
+    DrawRectangle(gs->camera.target.x-s_width,0,2*s_width,s_height,GetColor(0x00000080));
+
     //drawing the ground rectangles;
     for(int i=0;i<MaxChunkNum;i++){
         DrawRectangleRec(gs->gchunk[i].groundChunkRect,DARKBROWN);
@@ -25,24 +31,29 @@
             DrawRectangleRec(gs->gchunk[i].healthItemRect, GREEN);
         }
     }    
+
+    drawSpikes(gs);
+
     //drawing player sprite
 
         drawPlayerSprite(gs);
-        // DrawRectangleLinesEx(getplayerhitbox(gs),20,BLACK);
+        // DrawRectangleLinesEx(getGroundcheckRec(gs),40,WHITE);
         // DrawRectangleLinesEx(getPlayerRect(gs),10,(gs->player.isattacking)?RED:BLUE);
 
     //drawing enemy sprites
         for(int i=0;i<max_enemy_num;i++){
-            drawEnemy(&gs->enemy[i]);
+           if(gs->enemy[i].isactive) drawEnemy(&gs->enemy[i]);
             // DrawRectangleLinesEx(getEnemyHitbox(&gs->enemy[i]),20,BLACK);
             // DrawRectangleLinesEx(getEnemyRect(&gs->enemy[i]),10,BLUE);
         }
+
+        drawPgasSprite(gs);
+        
+
     }
 
     void initGame(GS* gs,tex* tex,anim* anim){
 
-        float ground_y = s_height*3.7f/4;
-        float ground_height = s_height-ground_y;
         SetMouseCursor(MOUSE_CURSOR_CROSSHAIR);
 
     // load textures
@@ -81,30 +92,25 @@
         float player_center_x = gs->player.position.x + gs->player.collisionOffset.x + gs->player.width / 2.0f;
         gs->camera.target = (Vector2){player_center_x-camera_half_deadzone,0.0f};
         gs->last_camera_x = gs->camera.target.x;
-    // setup initial Ground
-        gs->next_spawn_point=-s_width;
-        gs->chunk_index=0;
-
-    //heath function er variable gulo
+        //heath function er variable gulo
         gs->player.maxHealth = PLAYER_MAX_HEALTH;
         gs->player.health = PLAYER_MAX_HEALTH;
         gs->player.isDead = false;
+        
+        // INITIAL GROUND / PATTERN GENERATION
+        gs->chunk_index = 0;
 
+        // Start spawning from the beginning of the world
+        gs->next_spawn_point = -s_width;
 
-    for(int i=0;i<MaxChunkNum;i++){
-            gs->gchunk[i].groundChunkRect = (Rectangle){gs->next_spawn_point,ground_y,s_width,ground_height};
-            gs->gchunk[i].hasHealthItem = true; 
-            gs->gchunk[i].healthItemCollected = false;
-            gs->gchunk[i].healthItemRect = (Rectangle){
-                .x = gs->next_spawn_point + (s_width * 0.8f),
-                .y = ground_y - 40.0f,
-                .width = 30.0f,
-                .height = 30.0f
-            };
-            
-            
-            gs->next_spawn_point+=s_width;
-        }
+        // No pattern has been spawned yet
+        gs->lastPatternEndX = gs->next_spawn_point;
+
+        // Distance before the first pattern
+        gs->gapBetweenTheNextPattern = 2*s_width;
+
+        // Generate the initial world
+        updateGround(gs);
         // setup background layers — farthest (slowest apparent motion) to nearest
         float bg_scrollfactors[BG_LAYER_COUNT] = {0.1f, 0.25f, 0.45f,0.65f , 0.85f,.95f};
         
@@ -118,10 +124,18 @@
                 .height = l->tex.height
             };
         }
-        // spawing a random enemy
+        // loading all the enemy information at the start of the game 
         for(int i=0;i<max_enemy_num;i++){
             gs->enemy[i] = loadEnemy(tex);
+            gs->enemy[i].isactive = false; // spawn_pattern() activates slots as chunks generate
         }
+
+        // setup poison gas cloud
+        gs->pgas.position = (Vector2){-200.0f,ground_y-gs->pgas.pgas_anim[0].height+50.0f};
+        gs->pgas.pgas_damage = 10.0f; 
+        gs->pgas.frameduration = 0.08f;
+        gs->pgas.attackcooldown = 2.0f;
+        // all other properties of gs are set to zero by default
     }
     void unloadenemy(GS* gs){
         for(int i=0;i<max_enemy_num;i++){
@@ -129,7 +143,48 @@
         }
     }
 
+<<<<<<< HEAD
  
+=======
+    void updateGameplay(GS* gs,anim* anim,float dt){
+        player_has_fallen(gs);
+        playerDashUpdate(gs,dt);
+        Gravity(gs,dt);
+        hitting(gs,dt);
+        playerMovement(gs,anim,dt);
+        restrict_left_movement(gs);
+        groundedCheck(gs);
+        setplayerstate(gs);
+        updateJumpFrame(gs);
+        DamageFromSpikes(gs,dt);
+        updateAnimation(&gs->player_animations[gs->current_player_anim_name],dt);
+        
+        updateHealth(gs,dt);
+        checkHealthPickup(gs); // collision ditect check 
+
+        updateGround(gs);
+        cameraMovement(gs);
+        updatescore(gs);
+        move_pgas(gs,dt);
+        updatePgasAnimation(gs,dt);
+
+
+        float cameradelta = gs->camera.target.x - gs->last_camera_x;
+        updateParallax(gs,cameradelta);
+        gs->last_camera_x = gs->camera.target.x;
+
+
+        //enemy functions
+        updateEnemyInvultimer(gs,dt);
+        updatePlayerInvulnerability(gs,dt);
+        updateCombat(gs,dt);
+        updateEnemy(gs,dt);
+        updateEnemyAnimations(gs,dt);
+        isGameover(gs,dt);
+
+    }
+
+>>>>>>> c25d6994eaf2ecfd988a4dbd8ca2bf990b6b1022
 
 void updateGame(GS* gs, anim* anim, float dt){
     switch(gs->currentscreen){
@@ -141,6 +196,8 @@ void updateGame(GS* gs, anim* anim, float dt){
             break;
         case GAME: 
             updateGameplay(gs, anim, dt); 
+            break;
+        case GAMEOVER:
             break;
     }
 }
@@ -216,18 +273,18 @@ void drawMenu(GS* gs) {
     DrawTextEx(gs->cfonts.menu_font1,title,(Vector2){ (s_width / 2) -360- (titleWidth / 2), s_height / 4}, 150,0, GOLD);
 
     //option selected jeta seta lal dekahbe 
-    Color startColor = (gs->menu_selection == 0) ? RED : DARKGRAY;
-    Color exitColor  = (gs->menu_selection == 1) ? RED : DARKGRAY;
+    Color startColor = (gs->menu_selection == 0) ? WHITE : DARKGRAY;
+    Color exitColor  = (gs->menu_selection == 1) ? WHITE : DARKGRAY;
 
     //selected thakle >.........<
     const char* startText = (gs->menu_selection == 0) ? "> START GAME <" : "  START GAME  ";
-    int startWidth = MeasureText(startText, 40);
-    DrawText(startText, (s_width / 2) - (startWidth / 2), s_height / 2, 40, startColor);
+    int startWidth = MeasureText(startText, 60);
+    DrawTextEx(gs->cfonts.menu_font2,startText,(Vector2){ (s_width / 2) - (startWidth / 2), s_height / 2}, 60,0,startColor);
 
     //exit optn  >.......<
     const char* exitText = (gs->menu_selection == 1) ? "> EXIT <" : "  EXIT  ";
-    int exitWidth = MeasureText(exitText, 40);
-    DrawText(exitText, (s_width / 2) - (exitWidth / 2), s_height / 2 + 80, 40, exitColor);
+    int exitWidth = MeasureText(exitText, 60);
+    DrawTextEx(gs->cfonts.menu_font2,exitText, (Vector2){(gs->menu_selection == 1) ? (s_width / 2) - (exitWidth / 2)-30 :(s_width / 2) - (exitWidth / 2), s_height / 2 + 80}, 60, 0,exitColor);
 }
 
 
@@ -265,8 +322,6 @@ void updateNameEntry(GS* gs) {
 void drawNameEntry(GS* gs) {
     drawBackgroundMenu(gs);
     DrawRectangle(0,0,s_width,s_height,GetColor(0x000000AA));
-    // dark layer  bg te 
-    DrawRectangle(0, 0, s_width, s_height, Fade(BLACK, 0.7f));
 
     // rounded ekta box majhe 
     float boxWidth = 600.0f;
@@ -280,25 +335,25 @@ void drawNameEntry(GS* gs) {
     // title text 
     const char* title = "ENTER YOUR HERO NAME";
     int titleWidth = MeasureText(title, 30);
-    DrawText(title, (s_width / 2) - (titleWidth / 2), boxY + 40, 30, GOLD);
+    DrawTextEx(gs->cfonts.menu_font2,title, (Vector2){(s_width / 2) - (titleWidth / 2), boxY + 40},0, 30, GOLD);
 
     // white color er name input deyar box
-    DrawRectangle(boxX + 50, boxY + 120, boxWidth - 100, 60, LIGHTGRAY);
-    DrawRectangleLines(boxX + 50, boxY + 120, boxWidth - 100, 60, BLACK);
+    DrawRectangle(boxX + 50, boxY + 120, boxWidth - 100, 60, Fade(LIGHTGRAY,.6f));
+    DrawRectangleLines(boxX + 50, boxY + 120, boxWidth - 100, 60, Fade(LIGHTGRAY,.6f));
 
     // type kora player name 
-    DrawText(gs->playerName, boxX + 70, boxY + 135, 40, MAROON);
+    DrawTextEx(gs->cfonts.menu_font2,gs->playerName, (Vector2){boxX + 70, boxY + 135,}, 40,0, BLACK);
 
     // cursor blink 
     if ((int)(GetTime() * 3) % 2 == 0 && gs->nameLetterCount < 24) {
         int textW = MeasureText(gs->playerName, 40);
-        DrawText("_", boxX + 75 + textW, boxY + 135, 40, MAROON);
+        DrawText(" _", boxX + 75 + textW, boxY + 135, 40, BLACK);
     }
 
     // instruction text 
     const char* instruction = "Press ENTER to Begin";
     int instWidth = MeasureText(instruction, 20);
-    DrawText(instruction, (s_width / 2) - (instWidth / 2), boxY + 230, 20, LIGHTGRAY);
+    DrawTextEx(gs->cfonts.menu_font2,instruction, (Vector2){(s_width / 2) - (instWidth / 2), boxY + 230}, 20, 0,LIGHTGRAY);
 }
 
 
@@ -306,5 +361,54 @@ void drawNameEntry(GS* gs) {
 
 
 //game over functions
+void isGameover(GS* gs,float dt){
+    if(gs->player.isDead && gs->currentscreen!=GAMEOVER && gs->player_animations[gs->current_player_anim_name].isfinished){
+        gs->timer+=dt;
+        if(gs->timer>=1.0f) gs->currentscreen = GAMEOVER;
+        static bool checked = false;
+        if(!checked)gs->isNewHighScore = tryAddHighScore(gs->highScores, gs->playerName, gs->score);
+        checked = true;
+    }
+}
 
+void drawGameover(GS* gs){
+    drawBackgroundMenu(gs);
+    DrawRectangle(0,0,s_width,s_height,Fade(BLACK,.6f));
+    anim* a = &gs->player_animations[player_die];
+    DrawTexturePro(
+        a->tex,
+        (Rectangle){
+            .x = 3*a->frameWidth,
+            .y = 0,
+            .width = a->frameWidth,
+            .height = a->frameHeight
+        },
+        (Rectangle){
+            .x = s_width/2.0f-a->frameWidth/2.0f-160,
+            .y = s_height/2.0f-a->frameHeight-380,
+            .height = a->frameHeight*SPRITE_SCALE*1.8f,
+            .width = a->frameWidth*SPRITE_SCALE*1.8f
+        },
+        (Vector2){0,0},
+        0,WHITE
+    );
+    const char* gameover = "GAME OVER";
+    int text_width = MeasureText(gameover,80);
+    DrawTextEx(gs->cfonts.menu_font2,gameover,(Vector2){s_width/2.0f-text_width/2.0f,s_height/2.0f},80,0,RED);
 
+    drawGameOverScores(gs,gs->isNewHighScore);
+}
+
+void player_has_fallen(GS* gs){
+    if(getPlayerRect(gs).y>=s_height){
+        gs->player.isDead = true;
+    }
+}
+
+void updatescore(GS* gs){
+    gs->distance_traveled = gs->player.position.x -gs->player.initial_position.x;
+    gs->score = gs->distance_traveled*SCORE_PER_DISTANCE;
+}
+void drawScoreHUD(const GS* gs) {
+    DrawText(TextFormat("Score: %d", gs->score), 20, 20, 24, RAYWHITE);
+}

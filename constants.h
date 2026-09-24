@@ -16,10 +16,10 @@
 
 //different player speeds
 #define pSpeed 1000.0f
-#define pAttackMoveSpeed 500.0f
-#define pSpeedAir 600.0f
-#define jumpSpeed 500.0f
-#define gravity 1200.0f
+#define pAttackMoveSpeed 700.0f
+#define pSpeedAir 1000.0f
+#define jumpSpeed 700.0f
+#define gravity 1400.0f
 #define dash_speed 2000.0f // jore laaf dewar speed
 //different timers
 #define dash_duration .32f
@@ -33,19 +33,21 @@
 #define attackstartframe 3
 #define attackendframe 6    
 //koto gulo ground chunk dekhabe
-#define MaxChunkNum 5
-#define player_attack_power 10.0f
+#define MaxChunkNum 30
+#define player_attack_power 30.0f
 
 // enemy er jono
 #define enSpeed 900.0f
 #define encooldown 0.96f
 #define attackrange 120.0f
-#define enemy_attack_power 10.0f
-#define max_enemy_num 1
+#define enemy_attack_power 5.0f
+#define max_enemy_num 100
 #define enemy_max_health 60.0f
 #define enemy_invultimer .32f
 #define enemy_attack_start_frame 6
 #define enemy_attack_end_frame 10
+#define spikecooldown .60f
+#define spike_damage 25.0f
 
 // health  maximum and koto kore kombe seta 
 #define PLAYER_MAX_HEALTH 100.0f
@@ -53,5 +55,24 @@
 #define player_invul_time .08f
 #define player_real_width 17.0f
 #define player_real_height 32.0f
+<<<<<<< HEAD
 #define PTS_PX 10.0f
 #endif
+=======
+
+
+// obstacles and traps
+#define pattern_tile_width 80.0f
+#define platform_width 180.0f
+#define patternheight 40.0f
+#define gap_height 80.0f
+#define max_spikes 30
+#define ground_y  (GetScreenHeight()*3.7f/4)
+
+// for score
+#define MAX_HIGH_SCORES   5
+#define HIGHSCORE_FILE    "highscore.txt"
+#define SCORE_PER_DISTANCE 0.1f   
+#define MAX_NAME_LEN 25
+#endif  
+>>>>>>> c25d6994eaf2ecfd988a4dbd8ca2bf990b6b1022

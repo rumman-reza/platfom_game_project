@@ -2,7 +2,6 @@
 #include<stdbool.h>
 #include<math.h>
 
-// add enemy hurt animation and fix enemy damage code and find out why it's not working
 #include"types.h"
 #include"game.h"
 #include"enemy.h"
@@ -40,6 +39,10 @@ int main(){
             drawGame(&gs);
             EndMode2D();
             drawHealthUI(&gs); 
+            drawScoreHUD(&gs);
+
+        }else if(gs.currentscreen == GAMEOVER){
+            drawGameover(&gs);
         }
         EndDrawing();
     }

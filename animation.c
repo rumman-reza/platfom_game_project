@@ -1,6 +1,6 @@
 #include"animation.h"
 
-void loadAnimation(GS* gs,tex* tex,anim* animt){
+void loadAnimation(GS* gs,tex* tex){
 
     gs->player_animations[player_idle].tex = tex->idle;
     gs->player_animations[player_idle].framecount = 1;
@@ -79,6 +79,8 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
     p_hurt->isfinished = false;
 
 
+    
+
     gs->current_player_anim_name = player_idle;
 
 }
@@ -98,5 +100,12 @@ void updateAnimation(anim* a,float dt){
 
         if(!a->looping && a->currentframe >= a->framecount-1) a->isfinished = true;
     }
+}
 
+void updatePgasAnimation(GS* gs,float dt){
+    gs->pgas.frametimer += dt;
+    if(gs->pgas.frametimer>=gs->pgas.frameduration){
+        gs->pgas.current_texture = (gs->pgas.current_texture+1)%12;
+        gs->pgas.frametimer = 0;
+    }
 }

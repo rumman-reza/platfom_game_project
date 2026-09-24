@@ -4,7 +4,7 @@
 
 void updateHealth(GS* gs, float dt){
     if(gs->player.isDead) return;
-    gs->player.health -= HEALTH_DECAY_RATE * dt;
+    // gs->player.health -= HEALTH_DECAY_RATE * dt;
     if(gs->player.health <= 0.0f){
         gs->player.health = 0.0f;
         gs->player.isDead = true;
@@ -47,6 +47,7 @@ void drawHealthUI(GS* gs){
     // health index koto health ase seta  
     DrawText(TextFormat("HP: %d/%d", (int)gs->player.health, (int)gs->player.maxHealth), posX, posY + barHeight + 5, 20, BLACK);
 
+<<<<<<< HEAD
     DrawText(TextFormat("%d%%", displayPercentage), posX, posY + barHeight + 5, 20, WHITE);
 
     const char* heroName = TextFormat("HERO: %s", (gs->playerName));
@@ -60,6 +61,14 @@ void drawHealthUI(GS* gs){
     int scorePosX = s_width - 250; 
     DrawText(TextFormat("SCORE: %05d", gs->score), scorePosX, 20, 30, BLACK);
 //name top left  
+=======
+    DrawText(TextFormat("%d%%", displayPercentage), posX, posY + barHeight + 5, 20, WHITE);\
+
+    const char* heroname = TextFormat("HERO: %s",gs->playerName);
+    int nameY = posY+barHeight+45;
+    DrawTextEx(gs->cfonts.menu_font2,heroname,(Vector2){posX+3,nameY+3},40,0,BLACK);
+    DrawTextEx(gs->cfonts.menu_font2,heroname,(Vector2){posX,nameY},40,0,LIGHTGRAY);
+>>>>>>> c25d6994eaf2ecfd988a4dbd8ca2bf990b6b1022
 
 }
 
@@ -80,19 +89,6 @@ void damagePlayer(GS* gs,float amount){
     }
 }
 
-// void damageEnemy(Enemy *e, float amount) {
-//     if (e->isdead) return;
-
-//     e->health -= amount;
-
-//     if (e->health <= 0.0f) {
-//         e->health = 0.0f;
-//         e->isdead = true;
-//         updateEnemyAnimation(e,enemy_dead);
-//     } else {
-//         updateEnemyAnimation(e,enemy_hurt);
-//     }
-// }
 
 void updatePlayerInvulnerability(GS* gs,float dt){
     Player* p = &gs->player;
