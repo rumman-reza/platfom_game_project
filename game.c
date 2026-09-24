@@ -21,6 +21,7 @@
 
     //drawing the ground rectangles;
     for(int i=0;i<MaxChunkNum;i++){
+        
         DrawRectangleRec(gs->gchunk[i].groundChunkRect,DARKBROWN);
         // DrawRectangleLinesEx(gs->gchunk[i].groundChunkRect,3,BLACK);
         
@@ -59,7 +60,7 @@
     // load textures
         loadTexture(tex,gs);
     // load animations
-        loadAnimation(gs,tex,anim);
+        loadAnimation(gs,tex);
 
         //menu 
         gs->currentscreen = MENU;
