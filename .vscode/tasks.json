@@ -9,9 +9,11 @@
     "-g",
     "${workspaceFolder}/main.c",
     "${workspaceFolder}/game.c",
+    "${workspaceFolder}/score.c",
     "${workspaceFolder}/player.c",
     "${workspaceFolder}/enemy.c",
     "${workspaceFolder}/ground.c",
+    "${workspaceFolder}/pattern.c",
     "${workspaceFolder}/background.c",
     "${workspaceFolder}/camera.c",
     "${workspaceFolder}/texture.c",
@@ -20,16 +22,11 @@
     "${workspaceFolder}/combat.c",
     "-I${workspaceFolder}/raylib/include",
     "-L${workspaceFolder}/raylib/lib",
-    "-lraylib",
-    "-lopengl32",
-    "-lgdi32",
-    "-lwinmm",
+    "-lraylib", "-lopengl32", "-lgdi32", "-lwinmm",
     "-Wl,--defsym,stat64i32=_stat64",
-    "-Wall",
-    "-Wextra",
-    "-o",
-    "${workspaceFolder}/main.exe"
-    ],
+    "-Wall", "-Wextra",
+    "-o", "${workspaceFolder}/main.exe"
+],
       "options": {
         "cwd": "${workspaceFolder}",
         "shell": {

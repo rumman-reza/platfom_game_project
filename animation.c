@@ -1,6 +1,6 @@
 #include"animation.h"
 
-void loadAnimation(GS* gs,tex* tex,anim* animt){
+void loadAnimation(GS* gs,tex* tex){
 
     gs->player_animations[player_idle].tex = tex->idle;
     gs->player_animations[player_idle].framecount = 1;
@@ -78,6 +78,8 @@ void loadAnimation(GS* gs,tex* tex,anim* animt){
     p_hurt->looping = false;
     p_hurt->isfinished = false;
 
+
+    
 
     gs->current_player_anim_name = player_idle;
 

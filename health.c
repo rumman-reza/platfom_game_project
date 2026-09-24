@@ -4,7 +4,7 @@
 
 void updateHealth(GS* gs, float dt){
     if(gs->player.isDead) return;
-    gs->player.health -= HEALTH_DECAY_RATE * dt;
+    // gs->player.health -= HEALTH_DECAY_RATE * dt;
     if(gs->player.health <= 0.0f){
         gs->player.health = 0.0f;
         gs->player.isDead = true;
@@ -73,19 +73,6 @@ void damagePlayer(GS* gs,float amount){
     }
 }
 
-// void damageEnemy(Enemy *e, float amount) {
-//     if (e->isdead) return;
-
-//     e->health -= amount;
-
-//     if (e->health <= 0.0f) {
-//         e->health = 0.0f;
-//         e->isdead = true;
-//         updateEnemyAnimation(e,enemy_dead);
-//     } else {
-//         updateEnemyAnimation(e,enemy_hurt);
-//     }
-// }
 
 void updatePlayerInvulnerability(GS* gs,float dt){
     Player* p = &gs->player;

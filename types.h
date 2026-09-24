@@ -90,6 +90,8 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D enemy_attack;
     Texture2D enemy_dead;
     Texture2D enemy_hurt;
+
+    Texture2D spike_sprite;
 }tex;
 
 
@@ -190,6 +192,19 @@ typedef struct poison_gas{
     float attacktimer;
 } pgas;
 
+
+
+typedef struct spike{
+    Rectangle rect;
+    Texture2D spike_sprite;
+    bool isactive;
+}spike;
+
+typedef struct {
+    char name[25];
+    int  score;
+} HighScoreEntry;
+
 typedef struct gameState // main struct of this game, ekhane shob rokom game er element ache 
 {
     gamescreen currentscreen; // game menu te naki game er vitore ta bujhai
@@ -229,6 +244,20 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
 
     // pgas things
     pgas pgas;
+
+    //traps and pattern stuff
+    spike spikes[max_spikes];
+    int spike_index;
+    float spike_cooldown;
+    
+    float lastPatternEndX;
+    float gapBetweenTheNextPattern;
+    // for adding score elements
+    float distance_traveled;
+    int score;
+    HighScoreEntry highScores[MAX_HIGH_SCORES];   
+    bool isNewHighScore;
+
 }GS;
 
 

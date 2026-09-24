@@ -56,4 +56,8 @@ void loadTexture(tex* tex, GS* gs){
     for(int i=1;i<=12;i++){
         gs->pgas.pgas_anim[i-1] = LoadPixelTexture(TextFormat("assets/PNG/Posionous_Smoke_Frame_%d.png",i));
     }
+    
+    for(int i=0;i<max_spikes;i++){
+        gs->spikes[i].spike_sprite = LoadPixelTexture("assets/sprites/spike_sprite.png");
+    }
 }

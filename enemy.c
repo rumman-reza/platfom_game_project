@@ -3,6 +3,7 @@
 #include<math.h>
 #include"player.h"
 #include"raymath.h"
+#include"health.h"
 float timer=0.0f;
 
 Rectangle getEnemyRect(Enemy* enemy){    
@@ -69,18 +70,18 @@ Enemy loadEnemy(tex* tex){
     en_hurt->looping = false;
     en_hurt->timedependent = true;
     en_hurt->isfinished = false;  
-    
 
-    enemy.facing_left = true; // change this
-    enemy.height = en_idle->frameHeight*SPRITE_SCALE*1.8f;
-    enemy.width = en_idle->frameWidth*SPRITE_SCALE*1.8f;
-    enemy.isactive = true;
-    enemy.isgrounded = true;
-    enemy.inital_position = (Vector2){s_width,s_height*3.7f/4-enemy.height};
-    enemy.position = enemy.inital_position;
-    enemy.health = enemy_max_health;
+    
+    enemy.height = en_idle->frameHeight * SPRITE_SCALE * 1.8f;
+    enemy.width  = en_idle->frameWidth  * SPRITE_SCALE * 1.8f;
+    enemy.hashitplayerthisswing = false;
+    enemy.attack_cooldown = 0.0f;
     enemy.invultimer = 0.0f;
+    enemy.state = walking_enemy;
+    enemy.health = enemy_max_health;
+
     return enemy;
+
 
 }
 void UnloadEnemyAnims(Enemy *e) {
@@ -296,4 +297,35 @@ void drawPgasSprite(GS* gs){
     };
     DrawTexturePro(gs->pgas.pgas_anim[gs->pgas.current_texture],source,dest,(Vector2){0,0},0,WHITE);
 
+}
+
+void DamageFromSpikes(GS* gs,float dt){
+
+    gs->spike_cooldown-=dt;
+    if(gs->spike_cooldown<0) gs->spike_cooldown = 0;
+    for(int i = 0; i < max_spikes; i++){
+        if(!gs->spikes[i].isactive) continue;
+
+        if(CheckCollisionRecs(getPlayerRect(gs), gs->spikes[i].rect)){
+            if(gs->spike_cooldown==0) damagePlayer(gs,spike_damage);
+            gs->spike_cooldown = spikecooldown;
+        }   
+
+    }
+}
+void spawnEnemy(GS* gs, float x, float groundY){
+    for(int i = 0; i < max_enemy_num; i++){
+        Enemy* e = &gs->enemy[i];
+        if(e->isactive) continue;
+
+        e->position = (Vector2){ x, groundY - e->height };
+        e->velocity = (Vector2){0,0};
+   
+        e->isdead = false;
+        e->isactive = true;
+    
+        updateEnemyAnimation(e, enemy_running);
+        return; // one spawn per call — pattern.c calls this once per 'E' tile
+    }
+    TraceLog(LOG_WARNING,"spawnEnemy: no inactive slot free (max_enemy_num=%d)",max_enemy_num);
 }
