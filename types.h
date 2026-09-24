@@ -200,6 +200,10 @@ typedef struct spike{
     bool isactive;
 }spike;
 
+typedef struct {
+    char name[25];
+    int  score;
+} HighScoreEntry;
 
 typedef struct gameState // main struct of this game, ekhane shob rokom game er element ache 
 {
@@ -248,7 +252,11 @@ typedef struct gameState // main struct of this game, ekhane shob rokom game er 
     
     float lastPatternEndX;
     float gapBetweenTheNextPattern;
-    
+    // for adding score elements
+    float distance_traveled;
+    int score;
+    HighScoreEntry highScores[MAX_HIGH_SCORES];   
+    bool isNewHighScore;
 
 }GS;
 

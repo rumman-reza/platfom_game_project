@@ -9,6 +9,7 @@
     "-g",
     "${workspaceFolder}/main.c",
     "${workspaceFolder}/game.c",
+    "${workspaceFolder}/score.c",
     "${workspaceFolder}/player.c",
     "${workspaceFolder}/enemy.c",
     "${workspaceFolder}/ground.c",

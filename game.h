@@ -18,4 +18,6 @@ void updateGameover(GS* gs);
 void player_has_fallen(GS* gs);
 void isGameover(GS* gs,float dt);
 void drawGameover(GS* gs);
+void updatescore(GS* gs);
+void drawScoreHUD(const GS* gs);
 #endif 

@@ -7,9 +7,9 @@
 Rectangle getGroundcheckRec(GS* gs){
     Rectangle player = getPlayerRect(gs);
     Rectangle groundcheckrec = (Rectangle){
-            .height = 1.0f,
+            .height = 2.0f,
             .width = player.width,
-            .x= player.x + player.width/2.0f,
+            .x= player.x,
             .y = player.y + player.height
     };
     return groundcheckrec;

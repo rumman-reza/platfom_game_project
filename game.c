@@ -9,6 +9,8 @@
     #include "health.h"
     #include"combat.h"
     #include"types.h"
+    #include "score.h"
+
 
     void drawGame(GS* gs){
     
@@ -35,7 +37,7 @@
     //drawing player sprite
 
         drawPlayerSprite(gs);
-        DrawRectangleLinesEx(getGroundcheckRec(gs),20,BLACK);
+        // DrawRectangleLinesEx(getGroundcheckRec(gs),40,WHITE);
         // DrawRectangleLinesEx(getPlayerRect(gs),10,(gs->player.isattacking)?RED:BLUE);
 
     //drawing enemy sprites
@@ -46,6 +48,7 @@
         }
 
         drawPgasSprite(gs);
+        
 
     }
 
@@ -158,7 +161,7 @@
 
         updateGround(gs);
         cameraMovement(gs);
-
+        updatescore(gs);
         move_pgas(gs,dt);
         updatePgasAnimation(gs,dt);
 
@@ -328,6 +331,9 @@ void isGameover(GS* gs,float dt){
     if(gs->player.isDead && gs->currentscreen!=GAMEOVER && gs->player_animations[gs->current_player_anim_name].isfinished){
         gs->timer+=dt;
         if(gs->timer>=1.0f) gs->currentscreen = GAMEOVER;
+        static bool checked = false;
+        if(!checked)gs->isNewHighScore = tryAddHighScore(gs->highScores, gs->playerName, gs->score);
+        checked = true;
     }
 }
 
@@ -356,10 +362,19 @@ void drawGameover(GS* gs){
     int text_width = MeasureText(gameover,80);
     DrawTextEx(gs->cfonts.menu_font2,gameover,(Vector2){s_width/2.0f-text_width/2.0f,s_height/2.0f},80,0,RED);
 
+    drawGameOverScores(gs,gs->isNewHighScore);
 }
 
 void player_has_fallen(GS* gs){
     if(getPlayerRect(gs).y>=s_height){
         gs->player.isDead = true;
     }
+}
+
+void updatescore(GS* gs){
+    gs->distance_traveled = gs->player.position.x -gs->player.initial_position.x;
+    gs->score = gs->distance_traveled*SCORE_PER_DISTANCE;
+}
+void drawScoreHUD(const GS* gs) {
+    DrawText(TextFormat("Score: %d", gs->score), 20, 20, 24, RAYWHITE);
 }

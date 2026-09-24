@@ -38,6 +38,8 @@ int main(){
             drawGame(&gs);
             EndMode2D();
             drawHealthUI(&gs); 
+            drawScoreHUD(&gs);
+
         }else if(gs.currentscreen == GAMEOVER){
             drawGameover(&gs);
         }

@@ -102,6 +102,7 @@ void spawn_pattern(GS* gs,const pattern *p,float baseX,float groundY,float scree
                 }
                 case 'H':{
                     spawn_healthrect(gs,colX,rowY,pattern_tile_width);
+                    break;
                 }
 
                 default:
