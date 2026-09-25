@@ -5,15 +5,27 @@ void load_audio(GS* gs){
     gs->audio.menuMusic.looping = true;
     gs->audio.gameMusic = LoadMusicStream("assets/music/game_music1.wav");
     gs->audio.gameMusic.looping = true;
-    SetMusicVolume(gs->audio.gameMusic,.6f);
+    SetMusicVolume(gs->audio.gameMusic,.4f);
     SetMusicPitch(gs->audio.gameMusic,.6f);
     gs->audio.hurt = LoadSound("assets/music/hurt.mp3");
     gs->audio.die = LoadSound("assets/music/die.mp3");
+    SetSoundPitch(gs->audio.die,1.2f);
     gs->audio.enemyDie = LoadSound("assets/music/enemy_die.mp3");
     gs->audio.hit = LoadSound("assets/music/enemy_hurt.mp3");
-    gs->audio.gameOverSting = LoadSound("assets/music/game_over_sound");
+    gs->audio.gameOverSting = LoadSound("assets/music/game_over_sound.mp3");
+    gs->audio.player_run = LoadSound("assets/music/running.mp3");
+    SetSoundVolume(gs->audio.player_run,.5f);
 
+    gs->audio.swing = LoadSound("assets/music/player_swing.mp3");
+    gs->audio.enemy_swing = LoadSound("assets/music/enemy_swing.mp3");
+    gs->audio.dash = LoadSound("assets/music/dash.mp3");
+    gs->audio.jump = LoadSound("assets/music/jump.mp3");
+    SetSoundPitch(gs->audio.jump,1.2f);
 
+    gs->audio.landing = LoadSound("assets/music/landing.mp3");
+
+    gs->audio.enemy_run = LoadSound("assets/music/enemy_run.mp3");
+    gs->audio.health_pickup = LoadSound("assets/music/health_pickup.mp3");
 }
 void updateMusic(GS* gs){
     UpdateMusicStream(gs->audio.menuMusic);
@@ -21,7 +33,7 @@ void updateMusic(GS* gs){
 }
 
 
-#define footstep_interval 0.28f   // seconds between footstep sounds while running
+#define footstep_interval 0.35f   // seconds between footstep sounds while running
 
 
 void unloadAudio(GS* gs){
@@ -38,11 +50,10 @@ void unloadAudio(GS* gs){
 void playerFootstepUpdate(GS* gs, float dt){
     Player* p = &gs->player;
     bool isRunning = p->isgrounded && !p->isDead && !p->isdashing
-                     && fabsf(p->velocity.x) > 10.0f
-                     && gs->current_player_state == running_player;
+                      && fabsf(p->velocity.x) > 10.0f;   // same threshold setplayerstate uses for "running"
 
     if(!isRunning){
-        gs->audio.footstepTimer = 0.0f;   // reset so the first step after stopping is immediate
+        gs->audio.footstepTimer = footstep_interval;   // primes the next step to fire instantly
         return;
     }
 

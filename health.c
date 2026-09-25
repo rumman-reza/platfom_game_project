@@ -1,6 +1,8 @@
 #include"health.h"
 #include"player.h"
 #include"enemy.h"
+#include<string.h>
+#include<stdio.h>
 
 void updateHealth(GS* gs, float  dt){
     if(gs->player.isDead) return;
@@ -52,6 +54,7 @@ void damagePlayer(GS* gs,float amount){
     Player* p = &gs->player;
     if(p->isDead || p->invultimer>0) return;
     p->health-=amount;
+    spawn_health_update(gs,-amount);
     p->invultimer = player_invul_time;
 
     if(p->health<=0.0f){
@@ -72,5 +75,25 @@ void updatePlayerInvulnerability(GS* gs,float dt){
     if (p->invultimer >= 0.0f) {
         p->invultimer -= dt; 
         if (p->invultimer < 0.0f) p->invultimer = 0.0f;
+    }
+}
+
+void spawn_health_update(GS* gs,int amount){
+    Rectangle playerRect = getPlayerRect(gs);
+    for(int t=0;t<10;t++){
+        if(!gs->floatTexts[t].active){
+            gs->floatTexts[t].active = true;
+            
+            gs->floatTexts[t].position =(Vector2){playerRect.x,playerRect.y-30.0f};
+            gs->floatTexts[t].timer=1.5f;
+            //1.5 ssec er jonno screen ee tahkbe 
+            gs->floatTexts[t].maxTime=1.5f;
+            char show[40];
+            sprintf(show,"%+d %s",amount, "HP");
+            strcpy(gs->floatTexts[t].text, show);
+            gs->floatTexts[t].color =(amount<0)?RED:GOLD;
+            break;  
+            
+        }
     }
 }

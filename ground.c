@@ -4,6 +4,7 @@
 #include"types.h"
 #include <stdlib.h> 
 #include"game.h"
+#include"sound.h"   
 Rectangle getGroundcheckRec(GS* gs){
     Rectangle player = getPlayerRect(gs);
     Rectangle groundcheckrec = (Rectangle){
@@ -15,16 +16,24 @@ Rectangle getGroundcheckRec(GS* gs){
     return groundcheckrec;
 }
 
+
 void groundedCheck(GS* gs){
-    gs->player.isgrounded = false;
+    Player* p = &gs->player;
+    bool wasGrounded = p->isgrounded;
+    float fallSpeed  = p->velocity.y;   // capture before the loop zeroes it out on landing
+
+    p->isgrounded = false;
     for(int i = 0; i < MaxChunkNum; i++){
-        
         if(CheckCollisionRecs(getGroundcheckRec(gs), gs->gchunk[i].groundChunkRect)){
-            gs->player.isgrounded = true;
-            gs->player.position.y = gs->gchunk[i].groundChunkRect.y  - gs->player.collisionOffset.y  - gs->player.height;
-            gs->player.velocity.y = 0;
+            p->isgrounded = true;
+            p->position.y = gs->gchunk[i].groundChunkRect.y - p->collisionOffset.y - p->height;
+            p->velocity.y = 0;
             break;
         }
+    }
+
+    if(p->isgrounded && !wasGrounded && fallSpeed > 50.0f){
+        PlaySound(gs->audio.landing);
     }
 }
 void pushgroundchunk(GS *gs,float x,float y,float height,float width,bool has_health_item)

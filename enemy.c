@@ -44,7 +44,7 @@ Enemy loadEnemy(tex* tex){
     anim* en_run = &enemy.enemy_animations[enemy_running];
     en_run->tex = tex->enemy_run;
     en_run->framecount = 13;
-    en_run->frameduration = .08f;
+    en_run->frameduration = .04f;
     en_run->frameHeight = tex->enemy_run.height;
     en_run->frameWidth = tex->enemy_run.width/en_run->framecount;
     en_run->looping = true;
@@ -54,7 +54,7 @@ Enemy loadEnemy(tex* tex){
     anim* en_dead = &enemy.enemy_animations[enemy_dead];
     en_dead->tex = tex->enemy_dead;
     en_dead->framecount = 15;
-    en_dead->frameduration = .06f;
+    en_dead->frameduration = .1f;
     en_dead->frameHeight = tex->enemy_dead.height;
     en_dead->frameWidth = tex->enemy_dead.width/en_dead->framecount;
     en_dead->looping = false;
@@ -132,7 +132,8 @@ static void restartEnemyAnim(Enemy* e, enemy_anim n){
     a->isfinished = false;
 }
 
-static void startEnemyAttack(Enemy* e){
+static void startEnemyAttack(GS*gs, Enemy* e){
+    PlaySound(gs->audio.enemy_swing);
     e->state = attacking_enemy;
     e->velocity.x = 0;
     e->hashitplayerthisswing = false;
@@ -189,7 +190,7 @@ void updateEnemy(GS* gs,float dt){
             }
             case hurting_enemy:{
                 if(enemy->current_enemy_anim_name == enemy_hurt && !a->isfinished) break; // still stunned
-                if(dist <= attackrange && player_alive) startEnemyAttack(enemy);
+                if(dist <= attackrange && player_alive) startEnemyAttack(gs,enemy);
                 else{
                     enemy->state = walking_enemy;
                     updateEnemyAnimation(enemy, enemy_running);
@@ -198,7 +199,7 @@ void updateEnemy(GS* gs,float dt){
             }
             case walking_enemy:{
                 if(dist <= attackrange){
-                    startEnemyAttack(enemy);
+                    startEnemyAttack(gs,enemy);
                     break;
                 }
                 float dir = enemy->facing_left ? -1.0f : 1.0f;
@@ -214,7 +215,7 @@ void updateEnemy(GS* gs,float dt){
                     updateEnemyAnimation(enemy, enemy_running);
                 }
                 else if(enemy->attack_cooldown <= 0 && dist <= attackrange){
-                    startEnemyAttack(enemy);                
+                    startEnemyAttack(gs,enemy);    
                 }
                 break;
             }
@@ -329,4 +330,62 @@ void spawnEnemy(GS* gs, float x, float groundY){
         return; // one spawn per call — pattern.c calls this once per 'E' tile
     }
     TraceLog(LOG_WARNING,"spawnEnemy: no inactive slot free (max_enemy_num=%d)",max_enemy_num);
+}
+
+
+void initFogPuffs(GS* gs){
+    for(int i=0;i<25;i++){
+        gs->fogpuffs[i].offset.x = -(float)GetRandomValue(0, 1600);
+        gs->fogpuffs[i].offset.y = (float)GetRandomValue((int)fog_top_gap, s_height - (int)fog_bottom_gap);
+        gs->fogpuffs[i].radius = (float)GetRandomValue(40, 110);
+        gs->fogpuffs[i].speed = (float)GetRandomValue(10, 30)/10.0f;
+        gs->fogpuffs[i].phase = (float)GetRandomValue(0, 628)/100.0f;
+    }
+}
+
+// draws one vertical strip of fog at world-x `x`, width `w`, faded at top/bottom,
+// scaled by alphaScale (0..1) so callers can fade it horizontally too
+static void drawFogStrip(float x, float w, float alphaScale){
+    float topY = fog_top_gap;
+    float bottomY = s_height - fog_bottom_gap;
+    float midY1 = topY + fog_vfade;
+    float midY2 = bottomY - fog_vfade;
+
+    unsigned char a = (unsigned char)(fog_base_alpha * alphaScale);
+    Color solid = (Color){fog_color_r, fog_color_g, fog_color_b, a};
+    Color clear = (Color){fog_color_r, fog_color_g, fog_color_b, 0};
+
+    DrawRectangleGradientV((int)x,(int)topY,(int)w,(int)fog_vfade, clear, solid);         // fades in from top
+    DrawRectangle((int)x,(int)midY1,(int)w,(int)(midY2-midY1), solid);                    // solid middle band
+    DrawRectangleGradientV((int)x,(int)midY2,(int)w,(int)fog_vfade, solid, clear);        // fades out at bottom
+}
+
+void drawPgasFill(GS* gs){
+    float leftEdge = gs->camera.target.x - gs->camera.offset.x;
+    float edgeX = gs->pgas.position.x + gs->pgas.pgas_anim[0].width/2.0f;
+    float solidRight = edgeX - fog_edge_fade_width;
+
+    if(solidRight > leftEdge){
+        drawFogStrip(leftEdge, solidRight - leftEdge, 1.0f);
+    }
+}
+
+void drawPgasEdgeFade(GS* gs){
+    float edgeX = gs->pgas.position.x + gs->pgas.pgas_anim[0].width/2.0f;
+    float stripW = fog_edge_fade_width / fog_edge_strips;
+
+    for(int i=0;i<fog_edge_strips;i++){
+        float t = (float)i / fog_edge_strips;      // 0 = deep in fog, 1 = clear air
+        float x = edgeX - fog_edge_fade_width + i*stripW;
+        drawFogStrip(x, stripW+2, 1.0f - t);
+    }
+}
+
+void drawFogPuffs(GS* gs, float time){
+    float edgeX = gs->pgas.position.x + gs->pgas.pgas_anim[0].width/2.0f;
+    for(int i=0;i<25;i++){
+        float x = edgeX + gs->fogpuffs[i].offset.x;
+        float y = gs->fogpuffs[i].offset.y + sinf(time*gs->fogpuffs[i].speed + gs->fogpuffs[i].phase)*15.0f;
+        DrawCircleGradient((Vector2){(int)x,(int)y},gs->fogpuffs[i].radius,(Color){60,120,60,90},(Color){60,120,60,0});
+    }
 }

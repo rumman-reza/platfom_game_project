@@ -74,11 +74,15 @@
     //drawing enemy sprites
         for(int i=0;i<max_enemy_num;i++){
            if(gs->enemy[i].isactive) drawEnemy(&gs->enemy[i]);
-            DrawRectangleLinesEx(getEnemyHitbox(&gs->enemy[i]),20,BLACK);
-            DrawRectangleLinesEx(getEnemyRect(&gs->enemy[i]),10,BLUE);
+            // DrawRectangleLinesEx(getEnemyHitbox(&gs->enemy[i]),20,BLACK);
+            // DrawRectangleLinesEx(getEnemyRect(&gs->enemy[i]),10,BLUE);
         }
+        drawPgasFill(gs);
+        drawPgasEdgeFade(gs);
+        drawFogPuffs(gs,(float)GetTime());
 
-        drawPgasSprite(gs);
+        // drawPgasSprite(gs); 
+        // drawPgasSprite(gs);
         
       for(int i=0;i<10;i++){
        if(gs->floatTexts[i].active){
@@ -186,6 +190,9 @@
         gs->pgas.pgas_damage = 10.0f; 
         gs->pgas.frameduration = 0.08f;
         gs->pgas.attackcooldown = 2.0f;
+
+        initFogPuffs(gs);   
+        
 
         gs->starting_timer = STARTING_TIMER;
 
@@ -454,8 +461,11 @@ void isGameover(GS* gs, float dt){
     if(gs->player.isDead && gs->currentscreen != GAMEOVER && gs->player_animations[gs->current_player_anim_name].isfinished){
         gs->timer += dt;
         if(gs->timer >= 1.0f) {
+            StopMusicStream(gs->audio.gameMusic);
+            PlayMusicStream(gs->audio.menuMusic);
             gs->currentscreen = GAMEOVER; 
             gs->isNewHighScore = tryAddHighScore(gs->highScores, gs->playerName, gs->score);
+            PlaySound(gs->audio.gameOverSting);
         }
     }
 }
@@ -489,7 +499,8 @@ void isGameover(GS* gs, float dt){
 // }
 
 void player_has_fallen(GS* gs){
-    if(getPlayerRect(gs).y>=s_height){
+    if(getPlayerRect(gs).y>=ground_y+gs->player.height/2.0f){
+        PlaySound(gs->audio.die);
         gs->player.isDead = true;
     }
 }

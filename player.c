@@ -4,7 +4,7 @@
 #include"enemy.h"
 #include<stdio.h>
 #include<string.h>
-
+#include"health.h"
 void setplayerstate(GS* gs){
     playerstate newstate;
     Player* p = &gs->player;
@@ -85,6 +85,7 @@ void playerDashUpdate(GS* gs,float dt){
 
     if(IsKeyPressed(KEY_LEFT_SHIFT) && !a->isdashing && a->dashcooldowntimer<=0 && a->isgrounded){
         a->isdashing = true;
+        PlaySound(gs->audio.dash);
         a->dashcooldowntimer =dash_cooldowntimer;
         a->dashduration = dash_duration;
         a->velocity.x = (a->facing_left)? -dash_speed : dash_speed;
@@ -114,6 +115,7 @@ void hitting(GS* gs,float dt){
     anim* a = &gs->player_animations[gs->current_player_anim_name];
     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !p->isattacking && !p->isdashing && p->isgrounded){
         p->isattacking = true;
+        PlaySound(gs->audio.swing);
         p->hitduration = attackduration;
     }else if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !p->isattacking && !p->isdashing && !p->isgrounded){
         p->isattacking = true;
@@ -193,6 +195,7 @@ void playerMovement(GS* gs,anim* anim,float dt){
 
 
     if(IsKeyPressed(KEY_SPACE) && gs->player.isgrounded){
+        PlaySound(gs->audio.jump);
         gs->player.velocity.y = -jumpSpeed;
         gs->player.isgrounded = false; 
     }
@@ -201,6 +204,8 @@ void playerMovement(GS* gs,anim* anim,float dt){
     gs->player.position = (Vector2) Vector2Add(gs->player.position,Vector2Scale(gs->player.velocity,dt));
 
 }
+
+
 
 void checkHealthPickup(GS* gs){
     if(gs->player.isDead) return;
@@ -214,34 +219,14 @@ void checkHealthPickup(GS* gs){
                 
                 // max health theke besi houya jabe na tai 
                 //max er theke besi hote laglei max ei rakhbo 
+                PlaySound(gs->audio.health_pickup);
                 if(gs->player.health > gs->player.maxHealth){
                     gs->player.health = gs->player.maxHealth;
                 }
 
                 gs->gchunk[i].healthItemCollected = true; // ekbar pick korle oita r dekha jabe na 
-            
-            
-            for(int t=0;t<10;t++){
-    if(!gs->floatTexts[t].active){
-        gs->floatTexts[t].active = true;
-        
-        gs->floatTexts[t].position =(Vector2){playerRect.x,playerRect.y-30.0f};
-        gs->floatTexts[t].timer=1.5f;
-        //1.5 ssec er jonno screen ee tahkbe 
-        gs->floatTexts[t].maxTime=1.5f;
-          strcpy(gs->floatTexts[t].text, " +25 HP");
-        gs->floatTexts[t].color =GOLD;
-        break;  
-          
-    }
-
-
-
-
+                spawn_health_update(gs,25);
             }
-            
-            }
-
 
         }
     }

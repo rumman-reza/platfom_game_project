@@ -8,5 +8,6 @@ void damagePlayer(GS* gs,float amount);
 // void damageEnemy(Enemy* enemy,float amount);
 void drawHealthUI(GS* gs);   //health index er jonno UI
 void updatePlayerInvulnerability(GS* gs,float dt);
+void spawn_health_update(GS* gs,int amount);
 
 #endif

@@ -40,6 +40,7 @@ int main(){
         else if (gs.currentscreen == GAME) {
             BeginMode2D(gs.camera);
             drawGame(&gs, &tex);
+            
             EndMode2D();
             drawHealthUI(&gs); 
             drawScoreHUD(&gs);
@@ -51,6 +52,7 @@ int main(){
     }
     unloadTexture(&tex);
     unloadenemy(&gs);
+    unloadAudio(&gs);
     CloseAudioDevice();
     CloseWindow();
 }

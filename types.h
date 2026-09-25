@@ -228,7 +228,7 @@ typedef struct animation{
     
     typedef struct audio{
         Music menuMusic, gameMusic;
-        Sound die, swing, hit, jump, dash, hurt, pickup, enemyDie, gameOverSting, player_run,enemy_run;
+        Sound die, swing, hit, jump, dash, hurt, pickup, enemyDie, gameOverSting, player_run,enemy_run, enemy_swing,landing,health_pickup;
         float footstepTimer;        // player footstep loop timing
         float enemyFootstepTimer[max_enemy_num];  
     } audio;
@@ -240,6 +240,13 @@ typedef struct animation{
         char text[16];
         Color color;
     }FloatingText;
+
+    typedef struct fogpuff{
+        Vector2 offset;
+        float radius;
+        float speed;
+        float phase;
+    } fogpuff;
 
     typedef struct gameState // main struct of this game, ekhane shob rokom game er element ache 
     {
@@ -280,11 +287,11 @@ typedef struct animation{
 
         // pgas things
         pgas pgas;
-
-    FloatingText floatTexts[10];
+        fogpuff fogpuffs[25];
+        FloatingText floatTexts[10];
     
-    bomb bombs[max_bombs];
-    int bomb_index;
+        bomb bombs[max_bombs];
+        int bomb_index;
         //traps and pattern stuff
         spike spikes[max_spikes];
         int spike_index;
@@ -300,7 +307,7 @@ typedef struct animation{
 
         //starting camera position
         float starting_timer;
-
+        bool play_walking_sound;
         audio audio;
     }GS;
 

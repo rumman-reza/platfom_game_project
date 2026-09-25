@@ -33,7 +33,7 @@
 #define attackstartframe 3
 #define attackendframe 6    
 //koto gulo ground chunk dekhabe
-#define MaxChunkNum 120
+#define MaxChunkNum 90
 #define player_attack_power 30.0f
 
 // enemy er jono
@@ -81,5 +81,16 @@
 
 #define enemy_aggro_range    800.0f   // koto dur theke enemy dhorte ashbe
 #define enemy_despawn_margin 300.0f   // koto dur gele enemy despawn hoye jabe
+
+// fog visuals (not gameplay hitbox — see getPgasRect/move_pgas)
+#define fog_color_r        40
+#define fog_color_g        90
+#define fog_color_b        40
+#define fog_base_alpha     160
+#define fog_top_gap        120.0f   // empty space kept clear at the top of the screen
+#define fog_bottom_gap     100.0f   // empty space kept clear above the very bottom
+#define fog_vfade          90.0f    // how many px the top/bottom edges fade over
+#define fog_edge_fade_width 180.0f  // how many px the leading (right) edge fades over
+#define fog_edge_strips    12       // smoothness of the leading-edge fade
 
 #endif  
