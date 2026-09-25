@@ -66,10 +66,12 @@ void damagePlayer(GS* gs,float amount){
     if(p->health<=0.0f){
         p->isDead = true;
         p->health=0.0f;
+        PlaySound(gs->audio.die);
     }
     else {
         gs->current_player_anim_name = player_hurt;
         p->velocity.x = 0;
+         PlaySound(gs->audio.hurt);
     }
 }
 

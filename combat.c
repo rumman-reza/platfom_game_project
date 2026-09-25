@@ -21,7 +21,8 @@ void updateCombat(GS *gs, float dt){
                 Rectangle player_hitbox = getplayerhitbox(gs);
                 
                 if(!p->hashitthiswing && CheckCollisionRecs(player_hitbox,getEnemyRect(en))){
-                    damageEnemy(&gs->enemy[i],player_attack_power);                    
+                    damageEnemy(gs,&gs->enemy[i],player_attack_power);                    
+                    PlaySound(gs->audio.hit);
                     p->hashitthiswing = true; //jodi ekbare shudhu ekta enemy ke attack korte pare tahole                                               // can be changed later
                 } 
             }

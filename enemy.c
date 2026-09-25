@@ -123,104 +123,101 @@ void updateEnemyAnimation(Enemy* enemy,enemy_anim en_anim){
     }
 }
 
+
+static void restartEnemyAnim(Enemy* e, enemy_anim n){
+    e->current_enemy_anim_name = n;
+    anim* a = &e->enemy_animations[n];
+    a->currentframe = 0;
+    a->frametimer = 0.0f;
+    a->isfinished = false;
+}
+
+static void startEnemyAttack(Enemy* e){
+    e->state = attacking_enemy;
+    e->velocity.x = 0;
+    e->hashitplayerthisswing = false;
+    e->attack_cooldown = encooldown;   
+    restartEnemyAnim(e, enemy_attack);
+}
+
 void updateEnemy(GS* gs,float dt){
+    float left_edge = gs->camera.target.x - s_width/2.0f;
+    bool player_alive = !gs->player.isDead;
 
     for(int i=0;i<max_enemy_num;i++){
         Enemy* enemy = &gs->enemy[i];
-        
         if(!enemy->isactive) continue;
 
-        float player_center_x = getPlayerCenterX(gs);
-        float enemey_center_x = enemy->position.x + enemy->width/2.0f;
-        float dist = fabsf(player_center_x-enemey_center_x);
-        enemy->facing_left = (player_center_x<enemey_center_x);
+        // far behind the camera: free the slot
+        if(getEnemyRect(enemy).x + enemy->width < left_edge - enemy_despawn_margin){
+            enemy->isactive = false;
+            continue;
+        }
 
-        if(enemy->attack_cooldown>=0) enemy->attack_cooldown-=dt;
+        float player_center_x = getPlayerCenterX(gs);
+        float enemy_center_x  = enemy->position.x+enemy->width/2.0f;
+        float dist = fabsf(player_center_x - enemy_center_x);
+
+        // don't turn around mid-swing or while dying
+        if(enemy->state != attacking_enemy && enemy->state != dead_enemy)
+            enemy->facing_left = (player_center_x < enemy_center_x);
+
+        if(enemy->attack_cooldown > 0) enemy->attack_cooldown -= dt;
         anim* a = &enemy->enemy_animations[enemy->current_enemy_anim_name];
 
-        switch (enemy->state)
-        {
+        // player dead: chasing/attacking enemies calm down (no frozen mid-swing pose)
+        if(!player_alive && (enemy->state == walking_enemy || enemy->state == attacking_enemy)){
+            enemy->state = idle_enemy;
+            restartEnemyAnim(enemy, enemy_idle);
+        }
+
+        switch(enemy->state){
+            case idle_enemy:{
+                if(dist <= enemy_aggro_range && player_alive){
+                    enemy->state = walking_enemy;
+                    restartEnemyAnim(enemy, enemy_running);
+                }
+                break;
+            }
             case dead_enemy:{
-                enemy->velocity.x=0;
-                if(enemy->enemy_animations[enemy->current_enemy_anim_name].isfinished){
+                enemy->velocity.x = 0;
+                if(a->isfinished){
                     enemy->isactive = false;
                     enemy->isdead = true;
                 }
                 break;
             }
             case hurting_enemy:{
-                if(enemy->current_enemy_anim_name==enemy_hurt && !enemy->enemy_animations[enemy->current_enemy_anim_name].isfinished){
-                    updateEnemyAnimation(enemy,enemy_hurt);
-                }
-                else{ 
-                    if(dist<=attackrange && !gs->player.isDead){
-                        enemy->state = attacking_enemy;
-                        enemy->velocity.x = 0;  
-                        enemy->hashitplayerthisswing = false; 
-                        if(!gs->player.isDead) updateEnemyAnimation(enemy,enemy_attack);
-                        enemy->enemy_animations[enemy->current_enemy_anim_name].currentframe = 0;
-                        enemy->enemy_animations[enemy->current_enemy_anim_name].isfinished = 0;
-                        break;
-                    }
-                    else{
-                        enemy->state = walking_enemy;
-                        if(!gs->player.isDead)updateEnemyAnimation(enemy,enemy_running);
-                        break;
-                    }
-                }
-                break;
-            }
-
-            case walking_enemy:{
-                if(dist<=attackrange && !gs->player.isDead){
-                    enemy->velocity.x = 0;  
-                    enemy->state = attacking_enemy;
-                    enemy->current_enemy_anim_name = enemy_attack;
-                    enemy->hashitplayerthisswing = false; 
-                    updateEnemyAnimation(enemy,enemy_attack);
-                    //age thekei chilo tai nije theke zero korte hobe
-                    enemy->enemy_animations[enemy->current_enemy_anim_name].currentframe = 0;
-                    enemy->enemy_animations[enemy->current_enemy_anim_name].isfinished = 0;
-                    break;
-                }
-                float dir = (enemy->facing_left)? -1.0f:1.0f;
-                enemy->velocity.x = dir*enSpeed;
-                enemy->position.x += enemy->velocity.x*dt;
-                if(!gs->player.isDead) updateEnemyAnimation(enemy,enemy_running);
-                break;
-            }
-            case attacking_enemy: {
-                enemy->velocity.x = 0;
-                if(dist>attackrange && enemy->current_enemy_anim_name==enemy_attack && a->isfinished) {
+                if(enemy->current_enemy_anim_name == enemy_hurt && !a->isfinished) break; // still stunned
+                if(dist <= attackrange && player_alive) startEnemyAttack(enemy);
+                else{
                     enemy->state = walking_enemy;
-                    if(!gs->player.isDead) updateEnemyAnimation(enemy,enemy_running);
-
-                    break;
+                    updateEnemyAnimation(enemy, enemy_running);
                 }
-                if(enemy->attack_cooldown<=0 && !gs->player.isDead){
-                    if (dist <= attackrange){ 
-                        enemy->hashitplayerthisswing = false; 
-                        updateEnemyAnimation(enemy, enemy_attack);
-                        enemy->enemy_animations[enemy->current_enemy_anim_name].currentframe = 0;
-                        enemy->enemy_animations[enemy->current_enemy_anim_name].isfinished = 0;
-                        enemy->attack_cooldown = encooldown;
-                    } else {
-                        enemy->state = walking_enemy;
-                        if(!gs->player.isDead) updateEnemyAnimation(enemy, enemy_running);
-                    }
-                }
-                // else if(enemy->current_enemy_anim_name == enemy_attack && enemy->enemy_animations[enemy_attack].currentframe>= enemy->enemy_animations[enemy_attack].framecount - 1){
-                    
-                //     updateEnemyAnimation(enemy, enemy_idle);
-                //     enemy->enemy_animations[enemy_idle].currentframe = 0;
-                // }
                 break;
             }
-            
-            default:{
-                updateEnemyAnimation(enemy,enemy_idle);
+            case walking_enemy:{
+                if(dist <= attackrange){
+                    startEnemyAttack(enemy);
+                    break;
+                }
+                float dir = enemy->facing_left ? -1.0f : 1.0f;
+                enemy->velocity.x = dir * enSpeed;
+                enemy->position.x += enemy->velocity.x * dt;
+                updateEnemyAnimation(enemy, enemy_running);
+                break;
             }
-            break;
+            case attacking_enemy:{
+                enemy->velocity.x = 0;
+                if(a->isfinished && dist > attackrange){ 
+                    enemy->state = walking_enemy;
+                    updateEnemyAnimation(enemy, enemy_running);
+                }
+                else if(enemy->attack_cooldown <= 0 && dist <= attackrange){
+                    startEnemyAttack(enemy);                
+                }
+                break;
+            }
         }
     }
 }
@@ -234,7 +231,7 @@ void updateEnemyInvultimer(GS* gs,float dt){
     }
 }
 
-void damageEnemy(Enemy* e,float amount){
+void damageEnemy(GS* gs,Enemy* e,float amount){
     if (e->isdead || e->invultimer>0.0f) return;
     e->health -= amount;
     e->invultimer = enemy_invultimer;
@@ -243,6 +240,7 @@ void damageEnemy(Enemy* e,float amount){
         e->health = 0.0f;
         e->isdead = true;
         e->state = dead_enemy;
+         PlaySound(gs->audio.enemyDie);
         // e->currentFrame = 0;
         updateEnemyAnimation(e,enemy_dead);
     } else {
@@ -320,11 +318,14 @@ void spawnEnemy(GS* gs, float x, float groundY){
 
         e->position = (Vector2){ x, groundY - e->height };
         e->velocity = (Vector2){0,0};
-   
+        e->health = enemy_max_health;
         e->isdead = false;
+        e->invultimer = 0.0f;
+        e->attack_cooldown = 0.0f;
+        e->hashitplayerthisswing = false;
+        e->state = idle_enemy;
+        restartEnemyAnim(e, enemy_idle);
         e->isactive = true;
-    
-        updateEnemyAnimation(e, enemy_running);
         return; // one spawn per call — pattern.c calls this once per 'E' tile
     }
     TraceLog(LOG_WARNING,"spawnEnemy: no inactive slot free (max_enemy_num=%d)",max_enemy_num);

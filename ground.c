@@ -8,8 +8,8 @@ Rectangle getGroundcheckRec(GS* gs){
     Rectangle player = getPlayerRect(gs);
     Rectangle groundcheckrec = (Rectangle){
             .height = 2.0f,
-            .width = player.width,
-            .x= player.x,
+            .width = player.width/2.0f,
+            .x= player.x+player.width/4.0f,
             .y = player.y + player.height
     };
     return groundcheckrec;
@@ -104,9 +104,9 @@ void updateGround(GS* gs)
         }
         else
         {
-            pushgroundchunk(gs,gs->next_spawn_point,ground_y,s_height - ground_y,s_width, true);
+            pushgroundchunk(gs,gs->next_spawn_point,ground_y,s_height - ground_y,platform_width, true);
 
-            gs->next_spawn_point += s_width;
+            gs->next_spawn_point += platform_width;
         }
     }
 }
