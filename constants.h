@@ -17,7 +17,7 @@
 //different player speeds
 #define pSpeed 1000.0f
 #define pAttackMoveSpeed 700.0f
-#define pSpeedAir 1000.0f
+#define pSpeedAir 750.0f
 #define jumpSpeed 700.0f
 #define gravity 1400.0f
 #define dash_speed 2000.0f // jore laaf dewar speed
@@ -33,7 +33,7 @@
 #define attackstartframe 3
 #define attackendframe 6    
 //koto gulo ground chunk dekhabe
-#define MaxChunkNum 30
+#define MaxChunkNum 120
 #define player_attack_power 30.0f
 
 // enemy er jono
@@ -58,13 +58,13 @@
 
 
 // obstacles and traps
-#define pattern_tile_width 80.0f
-#define platform_width 180.0f
+#define pattern_tile_width 182.0f
+#define platform_width 368.0f
 #define patternheight 40.0f
 #define gap_height 80.0f
 #define max_spikes 30
 #define ground_y  (GetScreenHeight()*3.7f/4)
-
+#define spike_width 92.0f
 // for score
 #define MAX_HIGH_SCORES   5
 #define HIGHSCORE_FILE    "highscore.txt"
@@ -77,5 +77,9 @@
 #define bomb_width 80.0f  
 #define bomb_height 80.0f
 
+#define STARTING_TIMER 1.00f
+
+#define enemy_aggro_range    800.0f   // koto dur theke enemy dhorte ashbe
+#define enemy_despawn_margin 300.0f   // koto dur gele enemy despawn hoye jabe
 
 #endif  

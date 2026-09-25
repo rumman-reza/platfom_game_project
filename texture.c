@@ -70,4 +70,5 @@ void loadTexture(tex* tex, GS* gs){
     tex->health_item = LoadPixelTexture("assets/sprites/health_item.png");
    
     tex->bomb_sprite = LoadPixelTexture("assets/sprites/bomb.png");
+    for(int i=0;i<MaxChunkNum;i++) gs->gchunk[i].texture = LoadPixelTexture("assets/background_elements/floating_platform.png");
 }

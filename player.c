@@ -74,7 +74,7 @@ void drawPlayerSprite(GS* gs){
         .width  = a->frameWidth  * SPRITE_SCALE*1.6f,
         .height = a->frameHeight * SPRITE_SCALE*1.6f
     };
-    DrawTexturePro(a->tex, source, dest, (Vector2){0,0}, 0.0f, WHITE);
+    DrawTexturePro(a->tex, source, dest, (Vector2){0,0}, 0.0f, (gs->current_player_state == hurting_player)?RED:WHITE);
 }
 
 void playerDashUpdate(GS* gs,float dt){
@@ -142,6 +142,15 @@ void Gravity(GS* gs,float dt){
     gs->player.velocity.y += gravity*dt;
 }
 void playerMovement(GS* gs,anim* anim,float dt){
+
+    if(gs->starting_timer!=0){
+        gs->player.velocity.x = 1000.0f;
+        gs->player.position = (Vector2)Vector2Add(gs->player.position,Vector2Scale(gs->player.velocity,dt));
+        gs->starting_timer -= dt;
+        if(gs->starting_timer<=0) gs->starting_timer = 0.0f;
+        return;
+    }
+
     if(gs->player.isDead || gs->current_player_state==hurting_player){
         gs->player.position.y = gs->player.position.y + gs->player.velocity.y*dt;
         return;

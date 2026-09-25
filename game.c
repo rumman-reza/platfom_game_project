@@ -11,8 +11,7 @@
     #include"combat.h"
     #include"types.h"
     #include "score.h"
-    
-
+    #include "sound.h"
 
     void drawGame(GS* gs,tex *textures){
     
@@ -23,7 +22,24 @@
 
     //drawing the ground rectangles;
     for(int i=0;i<MaxChunkNum;i++){
-        DrawRectangleRec(gs->gchunk[i].groundChunkRect,DARKBROWN);
+
+        float width = gs->gchunk[i].texture.width;
+        float height = gs->gchunk[i].texture.height;
+        Rectangle chunk = gs->gchunk[i].groundChunkRect;
+        Rectangle source = (Rectangle){
+            .height = height,
+            .width = width,
+            .x = 0,
+            .y = 0
+        };
+        Rectangle dest = (Rectangle){
+            .height = chunk.height,
+            .width = chunk.width,
+            .x = chunk.x,
+            .y = chunk.y
+        };
+        
+        DrawTexturePro(gs->gchunk[i].texture,source,dest,(Vector2){0,0},0,WHITE);
         // DrawRectangleLinesEx(gs->gchunk[i].groundChunkRect,3,BLACK);
         
         
@@ -58,8 +74,8 @@
     //drawing enemy sprites
         for(int i=0;i<max_enemy_num;i++){
            if(gs->enemy[i].isactive) drawEnemy(&gs->enemy[i]);
-            // DrawRectangleLinesEx(getEnemyHitbox(&gs->enemy[i]),20,BLACK);
-            // DrawRectangleLinesEx(getEnemyRect(&gs->enemy[i]),10,BLUE);
+            DrawRectangleLinesEx(getEnemyHitbox(&gs->enemy[i]),20,BLACK);
+            DrawRectangleLinesEx(getEnemyRect(&gs->enemy[i]),10,BLUE);
         }
 
         drawPgasSprite(gs);
@@ -96,6 +112,9 @@
         gs->menu_selection = 0; //1st e start game e select hoye tahkbe 
         gs->quit_game = false;
         
+        load_audio(gs);                      
+        PlayMusicStream(gs->audio.menuMusic);
+        
         //set player
         float scale = SPRITE_SCALE * 1.6f;
         float frameW = gs->player_animations[player_idle].frameWidth;   // 80
@@ -108,8 +127,10 @@
         gs->player.collisionOffset.x = 30.0f * scale;
         gs->player.collisionOffset.y = 16.0f * scale;
 
-        gs->player.initial_position.x = s_width/2.0f - (frameW * scale) / 2.0f;  
-        gs->player.initial_position.y = ground_y - (frameH * scale);            
+        gs->player.initial_position.x = (frameW * scale) / 2.0f;  
+        gs->player.initial_position.y = ground_y - (frameH * scale);    
+        
+        gs->player.velocity.x = 300.0f;
 
         gs->player.position = gs->player.initial_position;
 
@@ -161,11 +182,17 @@
         }
 
         // setup poison gas cloud
-        gs->pgas.position = (Vector2){-200.0f,ground_y-gs->pgas.pgas_anim[0].height+50.0f};
+        gs->pgas.position = (Vector2){-400.0f,ground_y-gs->pgas.pgas_anim[0].height+50.0f};
         gs->pgas.pgas_damage = 10.0f; 
         gs->pgas.frameduration = 0.08f;
         gs->pgas.attackcooldown = 2.0f;
+
+        gs->starting_timer = STARTING_TIMER;
+
         // all other properties of gs are set to zero by default
+
+
+
     }
     void unloadenemy(GS* gs){
         for(int i=0;i<max_enemy_num;i++){
@@ -187,6 +214,8 @@
         DamageFromBombs(gs);
         updateAnimation(&gs->player_animations[gs->current_player_anim_name],dt);
         
+        playerFootstepUpdate(gs, dt);
+
         updateHealth(gs,dt);
         checkHealthPickup(gs); // collidrawsion ditect check 
 
@@ -210,17 +239,18 @@
         updateEnemyAnimations(gs,dt);
         
         for(int i = 0; i < 10; i++){
-        if(gs->floatTexts[i].active){
-            gs->floatTexts[i].position.y -= 40.0f * dt; 
-            //40 px kore per sec ee uthbe 
-           gs->floatTexts[i].timer -= dt;              
-            
-            if(gs->floatTexts[i].timer <= 0) {
-                gs->floatTexts[i].active = false;       
+            if(gs->floatTexts[i].active){
+                gs->floatTexts[i].position.y -= 40.0f * dt; 
+                //40 px kore per sec ee uthbe 
+            gs->floatTexts[i].timer -= dt;              
+                
+                if(gs->floatTexts[i].timer <= 0) {
+                    gs->floatTexts[i].active = false;       
+                }
             }
         }
-    }
- isGameover(gs,dt);
+        enemyFootstepUpdate(gs, dt);    
+        isGameover(gs,dt);
 
     }
 
@@ -370,6 +400,8 @@ void updateNameEntry(GS* gs) {
     // ENTER chaple game start at least 1 ta letter likhtei hobe 
     if (IsKeyPressed(KEY_ENTER) && gs->nameLetterCount > 0) {
         restartGame(gs);
+        StopMusicStream(gs->audio.menuMusic);
+        PlayMusicStream(gs->audio.gameMusic);
         gs->currentscreen = GAME;
     }
 
@@ -486,6 +518,8 @@ void updateGameover(GS* gs){
     if (IsKeyPressed(KEY_ENTER)) {
         gs->currentscreen = MENU;
         gs->menu_selection = 0; 
+        StopMusicStream(gs->audio.gameMusic);
+        PlayMusicStream(gs->audio.menuMusic);
     }
     updateParallax(gs, 1.5f);
 }

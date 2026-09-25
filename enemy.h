@@ -9,7 +9,7 @@ void drawEnemy(Enemy* a);
 void UnloadEnemyAnims(Enemy* enemy);
 void updateEnemyAnimation(Enemy* enemy,enemy_anim en_anim);
 Rectangle getEnemyHitbox(Enemy* enemy);
-void damageEnemy(Enemy* enemy,float amount);
+void damageEnemy(GS* gs,Enemy* enemy,float amount);
 void updateEnemyAnimations(GS* gs,float dt);
 void updateEnemyInvultimer(GS* gs,float dt);
 void move_pgas(GS* gs,float dt);
