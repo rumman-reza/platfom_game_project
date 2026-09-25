@@ -12,7 +12,7 @@ int main(){
     
     InitWindow(1920,1080,"Epic Adventure");
     SetTargetFPS(60);
-    ToggleBorderlessWindowed();
+    // ToggleBorderlessWindowed();
     // structure gulo define kora and 0 diye initialize kora
     GS gs={0};
     tex tex={0};
