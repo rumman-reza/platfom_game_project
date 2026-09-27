@@ -3,6 +3,7 @@
 #include"enemy.h"
 #include<string.h>
 #include<stdio.h>
+#include<math.h>
 
 void updateHealth(GS* gs, float  dt){
     if(gs->player.isDead) return;
@@ -22,11 +23,11 @@ void drawHealthUI(GS* gs){
 
     const char* heroname = TextFormat("%s", gs->playerName); 
     //shadow
-    DrawTextEx(gs->cfonts.menu_font3, heroname, (Vector2){posX + 3, posY + 3}, 40, 0, Fade(BLACK, 0.6f)); 
+    DrawTextEx(gs->cfonts.menu_font3, heroname, (Vector2){posX + 3, posY + 3}, 60, 0, Fade(BLACK, 0.6f)); 
 
-    DrawTextEx(gs->cfonts.menu_font3, heroname, (Vector2){posX, posY}, 40, 0, GOLD); 
+    DrawTextEx(gs->cfonts.menu_font3, heroname, (Vector2){posX, posY}, 60, 0, GOLD); 
 
-    float barY = posY + 45.0f;
+    float barY = posY + 70.0f;
     float barWidth = 250.0f; 
     float barHeight = 25.0f;
     
@@ -44,9 +45,9 @@ void drawHealthUI(GS* gs){
     DrawRectangleRoundedLines((Rectangle){posX, barY, barWidth, barHeight}, 0.5f, 10, LIGHTGRAY);
 
     int displayPercentage = (int)(healthPercentage * 100);
-    const char* hpText = TextFormat("HP: %d / %d  (%d%%)", (int)gs->player.health, (int)gs->player.maxHealth, displayPercentage);
+    const char* hpText = TextFormat("HP: %d / %d", (int)gs->player.health, (int)gs->player.maxHealth);
     
-    DrawText(hpText, posX + 5, barY + barHeight + 8, 20, RAYWHITE);
+    DrawTextEx(gs->cfonts.menu_font3,hpText, (Vector2){posX + 5, barY + barHeight + 8}, 30, 0,RAYWHITE);
 }
 
 
@@ -95,5 +96,57 @@ void spawn_health_update(GS* gs,int amount){
             break;  
             
         }
+    }
+}
+
+void spawnHealthDrop(GS* gs, float x, float y){
+    int index = gs->healthDrop_index;
+
+    gs->healthDrops[index].rect = (Rectangle){
+        .x = x - health_drop_width/2.0f,
+        .y = y - health_drop_height/2.0f,
+        .width = health_drop_width,
+        .height = health_drop_height
+    };
+    gs->healthDrops[index].healAmount = enemy_health_drop_amount;
+    gs->healthDrops[index].active = true;
+
+    gs->healthDrop_index = (gs->healthDrop_index + 1) % max_health_drops;
+}
+
+void updateHealthDropPickup(GS* gs){
+    if(gs->player.isDead) return;
+    Rectangle playerRect = getPlayerRect(gs);
+
+    for(int i=0;i<max_health_drops;i++){
+        HealthDrop* d = &gs->healthDrops[i];
+        if(!d->active) continue;
+
+        if(CheckCollisionRecs(playerRect, d->rect)){
+            gs->player.health += d->healAmount;
+            if(gs->player.health > gs->player.maxHealth) gs->player.health = gs->player.maxHealth;
+
+            PlaySound(gs->audio.health_pickup);
+            spawn_health_update(gs, (int)d->healAmount);
+            d->active = false;
+        }
+    }
+}
+
+void drawHealthDrops(GS* gs, tex* textures){
+    for(int i=0;i<max_health_drops;i++){
+        HealthDrop* d = &gs->healthDrops[i];
+        if(!d->active) continue;
+
+        Rectangle source = {0, 0, textures->health_item.width, textures->health_item.height};
+        float floatOffset = 3.0f*sinf(GetTime()*6.0f)*8.0f;   // same bob effect as your ground health items
+
+        Rectangle dest = {
+            .x = d->rect.x,
+            .y = d->rect.y + floatOffset,
+            .width = d->rect.width,
+            .height = d->rect.height
+        };
+        DrawTexturePro(textures->health_item, source, dest, (Vector2){0,0}, 0.0f, WHITE);
     }
 }

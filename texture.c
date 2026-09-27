@@ -22,8 +22,8 @@ void unloadTexture(tex* tex){
 
     UnloadTexture(tex->health_item);
 
-    UnloadTexture(tex->bomb_sprite);
-
+    for(int i=0;i<bush_sprite_count;i++)   UnloadTexture(tex->bush_sprites[i]);
+    for(int i=0;i<detail_sprite_count;i++) UnloadTexture(tex->detail_sprites[i]);
     // UnloadFont(gs->cfonts.menu_font3);
 }
 
@@ -49,6 +49,8 @@ void loadTexture(tex* tex, GS* gs){
     gs->bgLayers[3].tex = tex->woods_third;
     gs->bgLayers[4].tex = tex->Woods_fourth;
     gs->bgLayers[5].tex = tex->Bush_background;
+    
+    tex->spike_sprite = LoadPixelTexture("assets/sprites/spike_sprite.png");
 
     tex->enemy_idle = LoadPixelTexture("assets/enemy_sprites/SkeletonIdle.png");
     tex->enemy_run = LoadPixelTexture("assets/enemy_sprites/SkeletonWalk.png");
@@ -71,4 +73,29 @@ void loadTexture(tex* tex, GS* gs){
    
     tex->bomb_sprite = LoadPixelTexture("assets/sprites/bomb.png");
     for(int i=0;i<MaxChunkNum;i++) gs->gchunk[i].texture = LoadPixelTexture("assets/background_elements/floating_platform.png");
+
+    tex->bomb_explosion = LoadPixelTexture("assets/sprites/bomb_explosion.png");
+
+    tex->enemy_health_drop = LoadTexture("D:\\programming\\raylib_practise\\assets\\PNG\\enemy_health_drop.png");
+    tex->platform_health_drop = LoadTexture("D:\\programming\\raylib_practise\\assets\\PNG\\platform health.png");
+    tex->pgas = LoadTexture("assets/PNG/pgas.png");
+    tex->Large_gap = LoadTexture("assets\\PNG\\large_gap1.png");
+    tex->Large_gap2 = LoadTexture("assets\\PNG\\large_gap_2.png");
+
+    tex->bush_sprites[0] = LoadPixelTexture("assets\\foreground_elements\\BUSH FOREGROUND 1-2.png");
+    tex->bush_sprites[1] = LoadPixelTexture("assets\\foreground_elements\\BUSH FOREGROUND 1-3.png");
+    tex->bush_sprites[2] = LoadPixelTexture("assets\\foreground_elements\\BUSH FOREGROUND 1-4.png");
+    tex->bush_sprites[3] = LoadPixelTexture("assets\\foreground_elements\\BUSH FOREGROUND 1-5.png");
+    tex->bush_sprites[4] = LoadPixelTexture("assets\\foreground_elements\\BUSH FOREGROUND 1-6.png");
+    tex->bush_sprites[5] = LoadPixelTexture("assets\\foreground_elements\\BUSH FOREGROUND 1-7.png");
+    tex->detail_sprites[0] = LoadPixelTexture("assets\\foreground_elements\\GRASS 1-1.png");
+    tex->detail_sprites[1] = LoadPixelTexture("assets\\foreground_elements\\GRASS 1-2.png");
+    tex->detail_sprites[2] = LoadPixelTexture("assets\\foreground_elements\\GRASS 2-1.png");
+    tex->detail_sprites[3] = LoadPixelTexture("assets\\foreground_elements\\GRASS 2-2.png");
+    tex->detail_sprites[4] = LoadPixelTexture("assets\\foreground_elements\\GRASS 3-1.png");
+    tex->detail_sprites[5] = LoadPixelTexture("assets\\foreground_elements\\GRASS 3-2.png");
+    tex->detail_sprites[6] = LoadPixelTexture("assets\\foreground_elements\\MUSHROOM 1-1.png");
+    tex->detail_sprites[7] = LoadPixelTexture("assets\\foreground_elements\\MUSHROOM 1-2.png");
+    tex->detail_sprites[8] = LoadPixelTexture("assets\\foreground_elements\\MUSHROOM 2-1.png");
+
 }

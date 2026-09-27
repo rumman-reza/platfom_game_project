@@ -2,6 +2,8 @@
 #include"enemy.h"
 #include"player.h"
 #include"health.h"
+#include"explosion.h"
+#include"raymath.h"
 
 void updateCombat(GS *gs, float dt){
     Player* p =  &gs->player;
@@ -20,9 +22,9 @@ void updateCombat(GS *gs, float dt){
 
                 Rectangle player_hitbox = getplayerhitbox(gs);
                 
-                if(!p->hashitthiswing && CheckCollisionRecs(player_hitbox,getEnemyRect(en))){
+                if( CheckCollisionRecs(player_hitbox,getEnemyRect(en))){
                     damageEnemy(gs,&gs->enemy[i],player_attack_power);                    
-                    PlaySound(gs->audio.hit);
+                    if(!p->hashitthiswing)PlaySound(gs->audio.hit);
                     p->hashitthiswing = true; //jodi ekbare shudhu ekta enemy ke attack korte pare tahole                                               // can be changed later
                 } 
             }
@@ -58,15 +60,41 @@ void updateCombat(GS *gs, float dt){
 }
 
 
+void DamageFromBombs(GS* gs, float dt) {
+    Rectangle playerRect = getPlayerRect(gs);
+    Vector2 playerCenter = {
+        playerRect.x + playerRect.width/2.0f,
+        playerRect.y + playerRect.height/2.0f
+    };
 
-void DamageFromBombs(GS* gs) {
     for (int i = 0; i < max_bombs; i++) {
-        if (!gs->bombs[i].isactive) continue;
+        bomb* b = &gs->bombs[i];
+        if (!b->isactive) continue;
 
-        // বম্বের সাথে প্লেয়ারের ধাক্কা লাগলে
-        if (CheckCollisionRecs(getPlayerRect(gs), gs->bombs[i].rect)) {
-            damagePlayer(gs, bomb_damage); // ৫০ ড্যামেজ দিবে (bomb_damage)
-            gs->bombs[i].isactive = false; // বম্বটি বিস্ফোরিত হয়ে গায়েব হয়ে যাবে
+        Vector2 bombCenter = {
+            b->rect.x + b->rect.width/2.0f,
+            b->rect.y + b->rect.height/2.0f
+        };
+        bool playerInRange = Vector2Distance(playerCenter, bombCenter) <= bomb_explosion_range;
+
+        if (playerInRange) {
+            if (!b->armed) {
+                b->armed = true;
+                b->fuseTimer = bomb_fuse_time;
+            } else {
+                b->fuseTimer -= dt;
+            }
+
+            if (b->fuseTimer <= 0.0f) {
+                b->isactive = false;
+                spawnExplosion(gs, bombCenter);
+                PlaySound(gs->audio.explosion);
+                damagePlayer(gs, bomb_damage);   // player is still in range at this instant, by definition
+            }
+        } else {
+            // player got out before it went off: disarm, so re-entering later starts a fresh fuse
+            b->armed = false;
+            b->fuseTimer = 0.0f;
         }
     }
 }

@@ -8,6 +8,8 @@
 #include"animation.h"
 #include "health.h"
 #include "sound.h"
+#include"score.h"
+#include"tutorial.h"
 int main(){
     
     InitWindow(1920,1080,"Epic Adventure");
@@ -31,11 +33,14 @@ int main(){
         ClearBackground(RAYWHITE);
 
         if (gs.currentscreen == MENU) {
-            drawMenu(&gs); //menu er defination ache game.c te prototype game.h
+            drawMenu(&gs,&tex); //menu er defination ache game.c te prototype game.h
         } 
         else if (gs.currentscreen == NAME_ENTRY) {
             // name screen draw hobe ekhane 
             drawNameEntry(&gs);
+        }
+        else if(gs.currentscreen==TUTORIAL){
+            drawTutorial(&gs,&tex);
         }
         else if (gs.currentscreen == GAME) {
             BeginMode2D(gs.camera);
@@ -44,7 +49,9 @@ int main(){
             EndMode2D();
             drawHealthUI(&gs); 
             drawScoreHUD(&gs);
+            drawDifficultyMeter(&gs);
             }
+
         else if(gs.currentscreen == GAMEOVER){
             drawGameover(&gs);
         }

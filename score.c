@@ -2,6 +2,7 @@
 #include <string.h>
 #include "score.h"
 #include "constants.h"
+#include"ground.h"
 
 void loadHighScores(HighScoreEntry highScores[MAX_HIGH_SCORES]) {
     FILE* f = fopen(HIGHSCORE_FILE, "r");
@@ -70,4 +71,35 @@ void drawGameOverScores(const GS* gs, int isNewHighScore) {
         Vector2 entrySize = MeasureTextEx(gs->cfonts.menu_font3, entryText, 25, 0);
         DrawTextEx(gs->cfonts.menu_font3, entryText, (Vector2){(s_width/2.0f) - (entrySize.x/2.0f), startY + 180 + (i * 40)}, 25, 0, LIGHTGRAY);
     }
+}
+
+void drawDifficultyMeter(GS* gs){
+    float diff = getDifficultyFactor(gs);
+
+    float barWidth = 250.0f;
+    float barHeight = 25.0f;
+    float posX = s_width - barWidth - 30.0f;   // top-right corner, mirrors the health bar's top-left placement
+    float posY = 30.0f;
+
+    // green -> yellow -> red as diff goes 0 -> 1, same two-stop blend feel as the health bar's stepped colors
+    // but smooth here since difficulty is continuous rather than stepped
+    unsigned char r, g;
+    if(diff < 0.5f){
+        float t = diff / 0.5f;          // 0..1 across the green->yellow half
+        r = (unsigned char)(255 * t);
+        g = 255;
+    } else {
+        float t = (diff - 0.5f) / 0.5f; // 0..1 across the yellow->red half
+        r = 255;
+        g = (unsigned char)(255 * (1.0f - t));
+    }
+    Color meterColor = (Color){r, g, 0, 255};
+
+    DrawRectangleRounded((Rectangle){posX, posY, barWidth, barHeight}, 0.5f, 10, Fade(BLACK, 0.7f));
+    DrawRectangleRounded((Rectangle){posX, posY, barWidth * diff, barHeight}, 0.5f, 10, meterColor);
+    DrawRectangleRoundedLines((Rectangle){posX, posY, barWidth, barHeight}, 0.5f, 10, LIGHTGRAY);
+
+    const char* label = "DIFFICULTY";
+    Vector2 labelSize = MeasureTextEx(gs->cfonts.menu_font3, label, 40, 0);
+    DrawTextEx(gs->cfonts.menu_font3, label, (Vector2){posX + barWidth/2.0f - labelSize.x/2.0f, posY + barHeight + 5.0f}, 30, 0, RAYWHITE);
 }

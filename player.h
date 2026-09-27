@@ -15,4 +15,9 @@ void hitting(GS* gs,float dt);
 void restrict_left_movement(GS* gs);
 void checkHealthPickup(GS* gs);
 float getPlayerCenterX(GS* gs);
+Rectangle getHeadCheckRec(GS* gs);
+Rectangle getLeftCheckRec(GS* gs);
+Rectangle getRightCheckRec(GS* gs);
+void checkCeilingCollision(GS* gs);
+void checkWallCollision(GS* gs);
 #endif

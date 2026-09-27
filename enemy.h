@@ -17,8 +17,7 @@ Rectangle getPgasRect(GS* gs);
 void drawPgasSprite(GS* gs);
 void spawnEnemy(GS* gs, float x, float groundY);
 void initFogPuffs(GS* gs);
-void drawPgasFill(GS* gs);
-void drawPgasEdgeFade(GS* gs);
+void drawFog(GS* gs);
 void drawFogPuffs(GS* gs, float time);
 //traps and stuff
 

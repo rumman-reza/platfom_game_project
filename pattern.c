@@ -10,6 +10,7 @@ static const char* gapspike[] = {
 static const char* floatingPlatform[] = {
     ".....H..P...",
     ".....P......",
+    "............",
     "..P.........",
     "............",
     ".E..........",
@@ -19,19 +20,56 @@ static const char* enemyAmbush[] = {
      "...E.....E",
      "GGGGGGGGGG" };
 static const char* spikeGaunlet[] = {
-    ".S....S.....S.",
-    "GGG...GG...GGG"
+    ".S...S.....S.",
+    "GGG..GG...GGG"
 };
+static const char* dashGap[] = {
+    "........",
+    "GG....GG"
+};
+
+static const char* dashOverSpikes[] = {
+    "P......",
+    ".......",
+    "..SSSS.",
+    "GGGGGGG"
+};
+static const char* lowCeilingGap[] = {
+    "..PPPPP..",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    "..P......",
+    ".........",
+    "GG......GG"
+};
+
 //storing the patterns in all in one struct
 
-const pattern all_patterns[]={
+const pattern all_easy_patterns[]={
     {.rows = gapspike, .rowcount = sizeof(gapspike)/sizeof(gapspike[0])},
     {.rows = floatingPlatform, .rowcount = sizeof(floatingPlatform)/sizeof(floatingPlatform[0])},
     {.rows = spikeGaunlet,.rowcount = sizeof(spikeGaunlet)/sizeof(spikeGaunlet[0])},
-    {.rows=enemyAmbush,.rowcount=sizeof(enemyAmbush)/sizeof(enemyAmbush[0])}
+    {.rows=enemyAmbush,.rowcount=sizeof(enemyAmbush)/sizeof(enemyAmbush[0])},
+
+};
+const pattern all_medium_patterns[]={
+    {.rows = gapspike, .rowcount = sizeof(gapspike)/sizeof(gapspike[0])},
+    {.rows = floatingPlatform, .rowcount = sizeof(floatingPlatform)/sizeof(floatingPlatform[0])},
+    {.rows = spikeGaunlet,.rowcount = sizeof(spikeGaunlet)/sizeof(spikeGaunlet[0])},
+    {.rows=enemyAmbush,.rowcount=sizeof(enemyAmbush)/sizeof(enemyAmbush[0])},
+    {.rows=dashGap,.rowcount=sizeof(dashGap)/sizeof(dashGap[0])},
+    {.rows=dashOverSpikes,.rowcount=sizeof(dashOverSpikes)/sizeof(dashOverSpikes[0])},
+    {.rows=lowCeilingGap,.rowcount=sizeof(lowCeilingGap)/sizeof(lowCeilingGap[0])}
 };
 
-const int pattern_count = sizeof(all_patterns)/sizeof(all_patterns[0]);
+const int pattern_count1 = sizeof(all_easy_patterns)/sizeof(all_easy_patterns[0]);
+const int pattern_count2 = sizeof(all_medium_patterns)/sizeof(all_medium_patterns[0]);
+
 
 int getPatternWidth(const pattern* p)
 {

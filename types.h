@@ -5,9 +5,10 @@
 
     // menu ar game e switch korar jonno enum
     typedef enum gameScreen{
-        MENU=1,
         GAME=0,
+        MENU=1,
         NAME_ENTRY=2,
+        TUTORIAL=4,
         GAMEOVER=3
     } gamescreen;
 
@@ -66,7 +67,7 @@ typedef struct font{
     Font menu_font2;
     Font menu_font3;
 }font;
-
+#define foreground_sprite_count 15 
 
 typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and jekhane texture dorkar hoy 
                         // shekhane amra ei sturcture theke access kori
@@ -99,7 +100,19 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D health_item;
 
     Texture2D bomb_sprite;
+    Texture2D bomb_explosion;
     Texture2D floating_platform;
+
+    Texture2D enemy_health_drop;
+    Texture2D platform_health_drop;
+    Texture2D Large_gap;
+    Texture2D Large_gap2;
+    Texture2D pgas;
+
+    // inside tex struct:
+    Texture2D bush_sprites[bush_sprite_count];
+    Texture2D detail_sprites[detail_sprite_count]
+
 }tex;
 
 typedef enum enemy_animations{
@@ -219,8 +232,29 @@ typedef struct animation{
     typedef struct bomb {
         Rectangle rect;
         bool isactive;
+        bool armed;     
+        float fuseTimer;
     } bomb;
-    
+
+    typedef struct HealthDrop {
+        Rectangle rect;
+        float healAmount;
+        bool active;
+    } HealthDrop;
+    typedef struct Explosion{
+        Vector2 position;   // center of the explosion, not top-left
+        float timer;
+        int currentframe;
+        bool active;
+    } Explosion;
+
+    typedef struct ForegroundDecor{
+        Vector2 position;   // bottom-center anchor point (ground level)
+        int spriteIndex;
+        float scale;
+        bool facing_left;   // random flip for variety
+        bool active;
+    } ForegroundDecor;
     typedef struct {
         char name[25];
         int  score;
@@ -229,6 +263,7 @@ typedef struct animation{
     typedef struct audio{
         Music menuMusic, gameMusic;
         Sound die, swing, hit, jump, dash, hurt, pickup, enemyDie, gameOverSting, player_run,enemy_run, enemy_swing,landing,health_pickup;
+        Sound explosion,menu_select,menu_click,typing;
         float footstepTimer;        // player footstep loop timing
         float enemyFootstepTimer[max_enemy_num];  
     } audio;
@@ -247,6 +282,13 @@ typedef struct animation{
         float speed;
         float phase;
     } fogpuff;
+
+    typedef enum tutorialstate{
+        tut_fadein,
+        tut_typing,
+        tut_waiting,
+        tut_fadeout
+    } tutorialstate;
 
     typedef struct gameState // main struct of this game, ekhane shob rokom game er element ache 
     {
@@ -292,6 +334,12 @@ typedef struct animation{
     
         bomb bombs[max_bombs];
         int bomb_index;
+        // inside gameState:
+        Explosion explosions[max_explosions];
+        int explosion_index;
+
+        HealthDrop healthDrops[max_health_drops];
+        int healthDrop_index;
         //traps and pattern stuff
         spike spikes[max_spikes];
         int spike_index;
@@ -309,6 +357,21 @@ typedef struct animation{
         float starting_timer;
         bool play_walking_sound;
         audio audio;
+        bool show_tutorial;
+        Texture2D logo;
+        int tutorial_page;
+        int tutorial_charsShown;
+        float tutorial_charTimer;
+        float tutorial_alpha;
+        tutorialstate tutorial_state;
+
+        ForegroundDecor bushDecor[max_bush_decor];
+        int bushDecor_index;
+        float last_bush_x;          // world-x up to which bushes have already been placed — the continuity tracker
+
+        ForegroundDecor detailDecor[max_detail_decor];
+        int detailDecor_index;
+        float draw_gap;
     }GS;
 
 
@@ -319,7 +382,5 @@ typedef struct animation{
         float healAmount; // koto kore health barbe seta 
         bool active;      // healing obj screen e ache naki chole gese 
     } HealthItem;
-
-
 
     #endif

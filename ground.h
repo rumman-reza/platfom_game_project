@@ -13,5 +13,11 @@ void spawn_healthrect(GS* gs,float x,float y,float width);
 void addbomb(GS* gs, float x, float y, float width, float height);
 void drawBombs(GS* gs, tex* textures);
 
+float getDifficultyFactor(GS* gs);
+
+void spawnBushLine(GS* gs, float toX, float groundY);
+void spawnDetailCluster(GS* gs, float startX, float groundY);
+void drawBushLine(GS* gs, tex* textures);
+void drawDetailDecor(GS* gs, tex* textures);
 
 #endif

@@ -8,7 +8,7 @@ void updateGame(GS* gs,anim* anim, float dt);
 void updateGameplay(GS* gs,anim* anim,float dt);
 //menu
 void updateMenu(GS* gs);
-void drawMenu(GS* gs);
+void drawMenu(GS* gs,tex* tex);
 
 //game 
 void updateNameEntry(GS* gs);

@@ -4,5 +4,5 @@
 #include"types.h"
 
 void updateCombat(GS *gs, float dt);
-void DamageFromBombs(GS* gs);
+void DamageFromBombs(GS* gs,float dt);
 #endif

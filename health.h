@@ -10,4 +10,8 @@ void drawHealthUI(GS* gs);   //health index er jonno UI
 void updatePlayerInvulnerability(GS* gs,float dt);
 void spawn_health_update(GS* gs,int amount);
 
+void spawnHealthDrop(GS* gs, float x, float y);
+void updateHealthDropPickup(GS* gs);
+void drawHealthDrops(GS* gs, tex* textures);
+
 #endif

@@ -26,6 +26,11 @@ void load_audio(GS* gs){
 
     gs->audio.enemy_run = LoadSound("assets/music/enemy_run.mp3");
     gs->audio.health_pickup = LoadSound("assets/music/health_pickup.mp3");
+    gs->audio.explosion = LoadSound("assets/music/explosion.mp3");
+    gs->audio.menu_click = LoadSound("assets/music/menu_click.mp3");
+    gs->audio.menu_select = LoadSound("assets/music/menu_select.mp3");
+    gs->audio.typing = LoadSound("assets/music/typing.mp3");
+    
 }
 void updateMusic(GS* gs){
     UpdateMusicStream(gs->audio.menuMusic);

@@ -17,11 +17,11 @@ void drawBackground(GS* gs){
         for(int t=0; t<tilesNeeded; t++){
             Rectangle dest = {
                 .x = startX + t*texWidth + gs->camera.target.x - gs->camera.offset.x,
-                .y = (i==BG_LAYER_COUNT-1)?groundTop-texHeight:0,
+                .y = (i==BG_LAYER_COUNT-1)?s_height-texHeight:0,
                 .width  = texWidth,
                 .height = texHeight
             };
-            DrawTexturePro(l->tex, l->source, dest, (Vector2){0,0}, 0.0f, WHITE);
+            DrawTexturePro(l->tex, l->source, dest, (Vector2){0,0}, 0.0f, (i==BG_LAYER_COUNT-1)?GRAY:WHITE);
         }
     }
 }

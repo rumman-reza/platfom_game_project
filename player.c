@@ -89,7 +89,7 @@ void playerDashUpdate(GS* gs,float dt){
         a->dashcooldowntimer =dash_cooldowntimer;
         a->dashduration = dash_duration;
         a->velocity.x = (a->facing_left)? -dash_speed : dash_speed;
-        a->velocity.y = -260.0f;
+        a->velocity.y = -350.0f;
     }
     if(a->dashduration>=0){
         a->dashduration-=dt;
@@ -119,6 +119,7 @@ void hitting(GS* gs,float dt){
         p->hitduration = attackduration;
     }else if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !p->isattacking && !p->isdashing && !p->isgrounded){
         p->isattacking = true;
+        PlaySound(gs->audio.swing);
         p->hitduration = airattackduration;
 
     }
@@ -228,6 +229,64 @@ void checkHealthPickup(GS* gs){
                 spawn_health_update(gs,25);
             }
 
+        }
+    }
+}
+Rectangle getHeadCheckRec(GS* gs){
+    Rectangle body = getPlayerRect(gs);
+    return (Rectangle){
+        .x = body.x + body.width*0.2f,   // inset from the corners so shoulder-clipping a ledge corner doesn't false-trigger
+        .y = body.y - 4.0f,
+        .width = body.width*0.6f,
+        .height = 4.0f
+    };
+}
+
+Rectangle getLeftCheckRec(GS* gs){
+    Rectangle body = getPlayerRect(gs);
+    return (Rectangle){
+        .x = body.x - 8.0f,
+        .y = body.y + 6.0f,              // inset top/bottom so it doesn't catch the floor or a ceiling
+        .width = 8.0f,
+        .height = body.height - 12.0f
+    };
+}
+
+Rectangle getRightCheckRec(GS* gs){
+    Rectangle body = getPlayerRect(gs);
+    return (Rectangle){
+        .x = body.x + body.width,
+        .y = body.y + 6.0f,
+        .width = 8.0f,
+        .height = body.height - 12.0f
+    };
+}
+void checkCeilingCollision(GS* gs){
+    if(gs->player.velocity.y >= 0) return;   // only relevant while moving upward
+    Rectangle headRect = getHeadCheckRec(gs);
+    for(int i=0;i<MaxChunkNum;i++){
+        Rectangle chunk = gs->gchunk[i].groundChunkRect;
+        if(CheckCollisionRecs(headRect, chunk)){
+            gs->player.velocity.y = 0;
+            gs->player.position.y = chunk.y + chunk.height - gs->player.collisionOffset.y;
+            break;
+        }
+    }
+}
+
+void checkWallCollision(GS* gs){
+    Rectangle leftRect  = getLeftCheckRec(gs);
+    Rectangle rightRect = getRightCheckRec(gs);
+    for(int i=0;i<MaxChunkNum;i++){
+        Rectangle chunk = gs->gchunk[i].groundChunkRect;
+
+        if(gs->player.velocity.x < 0 && CheckCollisionRecs(leftRect, chunk)){
+            gs->player.position.x = chunk.x + chunk.width - gs->player.collisionOffset.x;
+            gs->player.velocity.x = 0;
+        }
+        if(gs->player.velocity.x > 0 && CheckCollisionRecs(rightRect, chunk)){
+            gs->player.position.x = chunk.x - gs->player.width - gs->player.collisionOffset.x;
+            gs->player.velocity.x = 0;
         }
     }
 }

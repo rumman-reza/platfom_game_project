@@ -10,6 +10,8 @@
     "${workspaceFolder}/main.c",
     "${workspaceFolder}/game.c",
     "${workspaceFolder}/score.c",
+    "${workspaceFolder}/explosion.c",
+    "${workspaceFolder}/tutorial.c",
     "${workspaceFolder}/sound.c",
     "${workspaceFolder}/player.c",
     "${workspaceFolder}/enemy.c",
