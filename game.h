@@ -20,7 +20,8 @@ void isGameover(GS* gs,float dt);
 void drawGameover(GS* gs);
 void updatescore(GS* gs);
 void drawScoreHUD(const GS* gs);
-
+void updateCredits(GS* gs);
+void drawCredits(GS* gs, tex* textures);
 
 
 void addbomb(GS* gs, float x, float y, float width, float height);

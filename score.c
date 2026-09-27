@@ -50,29 +50,37 @@ int tryAddHighScore(HighScoreEntry highScores[MAX_HIGH_SCORES], const char* name
 }
 
 void drawGameOverScores(const GS* gs, int isNewHighScore) {
-    float startY = 450.0f;
+    float centerX = s_width / 2.0f;
+    float centerY = s_height / 2.0f;
+
     
+    float scoreFontSize = 50.0f;
     const char* scoreText = TextFormat("Score: %d", gs->score);
-    Vector2 scoreSize = MeasureTextEx(gs->cfonts.menu_font3, scoreText, 40, 0);
-    DrawTextEx(gs->cfonts.menu_font3, scoreText, (Vector2){(s_width/2.0f) - (scoreSize.x/2.0f), startY}, 40, 0, RAYWHITE);
+    Vector2 scoreSize = MeasureTextEx(gs->cfonts.menu_font3, scoreText, scoreFontSize, 0);
+    DrawTextEx(gs->cfonts.menu_font3, scoreText, (Vector2){centerX - (scoreSize.x / 2.0f), centerY - 350}, scoreFontSize, 0, RAYWHITE);
+
     
     if (isNewHighScore) {
-        const char* hsText = "New High Score!";
-        Vector2 hsSize = MeasureTextEx(gs->cfonts.menu_font3, hsText, 30, 0);
-        DrawTextEx(gs->cfonts.menu_font3, hsText, (Vector2){(s_width/2.0f) - (hsSize.x/2.0f), startY + 50}, 30, 0, YELLOW);
+        float newHsFontSize = 40.0f;
+        const char* newHsText = "New High Score!";
+        Vector2 newHsSize = MeasureTextEx(gs->cfonts.menu_font3, newHsText, newHsFontSize, 0);
+        DrawTextEx(gs->cfonts.menu_font3, newHsText, (Vector2){centerX - (newHsSize.x / 2.0f), centerY - 120}, newHsFontSize, 0, YELLOW);
     }
 
-    const char* titleText = "High Scores";
-    Vector2 titleSize = MeasureTextEx(gs->cfonts.menu_font3, titleText, 30, 0);
-    DrawTextEx(gs->cfonts.menu_font3, titleText, (Vector2){(s_width/2.0f) - (titleSize.x/2.0f), startY + 130}, 30, 0, GOLD);
     
+    float titleFontSize = 60.0f;
+    const char* titleText = "High Scores";
+    Vector2 titleSize = MeasureTextEx(gs->cfonts.menu_font3, titleText, titleFontSize, 0);
+    DrawTextEx(gs->cfonts.menu_font3, titleText, (Vector2){centerX - (titleSize.x / 2.0f), centerY - 40}, titleFontSize, 0, GOLD);
+
+    
+    float listFontSize = 45.0f;
     for (int i = 0; i < MAX_HIGH_SCORES; i++) {
-        const char* entryText = TextFormat("%d. %s - %d", i + 1, gs->highScores[i].name, gs->highScores[i].score);
-        Vector2 entrySize = MeasureTextEx(gs->cfonts.menu_font3, entryText, 25, 0);
-        DrawTextEx(gs->cfonts.menu_font3, entryText, (Vector2){(s_width/2.0f) - (entrySize.x/2.0f), startY + 180 + (i * 40)}, 25, 0, LIGHTGRAY);
+        const char* listText = TextFormat("%d. %s - %d", i + 1, gs->highScores[i].name, gs->highScores[i].score);
+        Vector2 listSize = MeasureTextEx(gs->cfonts.menu_font3, listText, listFontSize, 0);
+        DrawTextEx(gs->cfonts.menu_font3, listText, (Vector2){centerX - (listSize.x / 2.0f), centerY + 40 + (i * 60)}, listFontSize, 0, LIGHTGRAY);
     }
 }
-
 void drawDifficultyMeter(GS* gs){
     float diff = getDifficultyFactor(gs);
 

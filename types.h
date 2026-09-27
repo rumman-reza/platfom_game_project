@@ -9,7 +9,8 @@
         MENU=1,
         NAME_ENTRY=2,
         TUTORIAL=4,
-        GAMEOVER=3
+        GAMEOVER=3,
+       CREDITS=5
     } gamescreen;
 
     // ground er jonno struct
@@ -109,6 +110,11 @@ typedef struct texture{ // game er sob gulo texture ekhane store kora hoy and je
     Texture2D Large_gap2;
     Texture2D pgas;
 
+
+    Texture2D rumman_photo;
+    Texture2D sifat_photo;
+    
+    
     // inside tex struct:
     Texture2D bush_sprites[bush_sprite_count];
     Texture2D detail_sprites[detail_sprite_count]

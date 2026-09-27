@@ -19,6 +19,11 @@ void unloadTexture(tex* tex){
     UnloadTexture(tex->Woods_second);
     UnloadTexture(tex->woods_third);
     UnloadTexture(tex->Bush_background);
+    
+    UnloadTexture(tex->rumman_photo);
+    UnloadTexture(tex->sifat_photo);
+
+
 
     UnloadTexture(tex->health_item);
 
@@ -69,6 +74,13 @@ void loadTexture(tex* tex, GS* gs){
     for(int i=0;i<max_spikes;i++){
         gs->spikes[i].spike_sprite = LoadPixelTexture("assets/sprites/spike_sprite.png");
     }
+    
+    tex->rumman_photo = LoadPixelTexture("assets/sprites/rumman.png");
+    tex->sifat_photo = LoadPixelTexture("assets/sprites/sifat.png");
+
+  
+
+    
     tex->health_item = LoadPixelTexture("assets/sprites/health_item.png");
    
     tex->bomb_sprite = LoadPixelTexture("assets/sprites/bomb.png");
@@ -97,5 +109,9 @@ void loadTexture(tex* tex, GS* gs){
     tex->detail_sprites[6] = LoadPixelTexture("assets\\foreground_elements\\MUSHROOM 1-1.png");
     tex->detail_sprites[7] = LoadPixelTexture("assets\\foreground_elements\\MUSHROOM 1-2.png");
     tex->detail_sprites[8] = LoadPixelTexture("assets\\foreground_elements\\MUSHROOM 2-1.png");
+
+    
+
+
 
 }

@@ -347,6 +347,9 @@ void updateGame(GS* gs, anim* anim, float dt){
         case GAMEOVER:
             updateGameover(gs);
             break;
+        case CREDITS:            
+            updateCredits(gs);
+            break;    
     }
 }
 
@@ -360,13 +363,13 @@ void updateMenu(GS* gs) {
     if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) {
         gs->menu_selection++;
         PlaySound(gs->audio.menu_select);
-        if (gs->menu_selection > 1) gs->menu_selection = 0; // 2 tar besi option nai tao 0 te chole jabe 
+        if (gs->menu_selection > 2) gs->menu_selection = 0; // 3 tar besi option nai tao 0 te chole jabe 
     }
     //up key te vice versa
     if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
         gs->menu_selection--;
         PlaySound(gs->audio.menu_select);
-        if (gs->menu_selection < 0) gs->menu_selection = 1;
+        if (gs->menu_selection < 0) gs->menu_selection = 2;
     }
 
     //enter key
@@ -377,14 +380,19 @@ void updateMenu(GS* gs) {
             gs->nameLetterCount = 0;        // name reset kora
             gs->playerName[0] = '\0';
         } 
-        else if (gs->menu_selection == 1) {
+        else  if(gs->menu_selection==1){
+            gs->currentscreen=CREDITS;
+        }
+
+        else if (gs->menu_selection == 2) {
             gs->quit_game = true;
         }
+        
     }
     updateParallax(gs,5.0f);
 }
 
-void drawMenu(GS* gs,tex* tex) {
+void drawMenu(GS* gs, tex* tex) {
     drawBackgroundMenu(gs);
     
     DrawRectangle(0,0,s_width,s_height,GetColor(0x000000AA));
@@ -399,7 +407,6 @@ void drawMenu(GS* gs,tex* tex) {
         (Vector2){0,0},0,WHITE
     );
 
-
     float width2 = tex->enemy_hurt.width/8.0f;
     float height2  = tex->enemy_hurt.height;
     DrawTexturePro(
@@ -407,6 +414,7 @@ void drawMenu(GS* gs,tex* tex) {
         (Rectangle){.x = player_posx+475.0f,.y = player_posy+120.0f,.width = width2*SPRITE_SCALE*1.6f, .height = height2*SPRITE_SCALE*1.6f},
         (Vector2){0,0},0,WHITE
     );
+
     float width3 = tex->enemy_attack.width/18.0f;
     float height3  = tex->enemy_attack.height;
     DrawTexturePro(
@@ -414,64 +422,61 @@ void drawMenu(GS* gs,tex* tex) {
         (Rectangle){.x = player_posx-100.0f,.y = player_posy+90.0f,.width = width3*SPRITE_SCALE*1.6f, .height = height3*SPRITE_SCALE*1.6f},
         (Vector2){0,0},0,WHITE
     );
-        float position = 0;
-        float widthG = gs->gchunk[0].texture.width;
-        float heightG = gs->gchunk[0].texture.height;
-        while(position<=s_width){
-            Rectangle source = (Rectangle){
-                .height = heightG,
-                .width = widthG,
-                .x = 0,
-                .y = 0
-            };
-            Rectangle dest = (Rectangle){
-                .height = heightG*2.0f+40.0f,
-                .width = widthG*4.0f,
-                .x = position,
-                .y = player_posy+270.0f
-            };
-            
-            DrawTexturePro(gs->gchunk[0].texture,source,dest,(Vector2){0,0},0,WHITE);
-            position+=widthG*4.0f;
-        }
-        DrawRectangle(0,0,s_width,s_height,GetColor(0x00000022));
-        DrawRectangle(s_width/2.0f-gs->logo.width/2.0f,150.0f,gs->logo.width,gs->logo.height,GetColor(0x00000044));
-        DrawTexture(gs->logo,s_width/2.0f-gs->logo.width/2.0f,150.0f,WHITE);
 
-
-
-
-        // float widthB = tex->health_item.width;
-        // float heightB = tex->health_item.height;
-        // Rectangle source2 = (Rectangle){
-        //     .height = heightB,
-        //     .width = widthB,
-        //     .x = 2*widthB,
-        //     .y = 0
-        // };
-        // Rectangle dest2 = (Rectangle){
-        //     .height = heightB/2.0f-30,
-        //     .width = widthB/2.0f-30,
-        //     .x = player_posx+320.0f,
-        //     .y = player_posy+height*SPRITE_SCALE*1.8f-60
-        // };
+    float position = 0;
+    float widthG = gs->gchunk[0].texture.width;
+    float heightG = gs->gchunk[0].texture.height;
+    while(position<=s_width){
+        Rectangle source = (Rectangle){
+            .height = heightG,
+            .width = widthG,
+            .x = 0,
+            .y = 0
+        };
+        Rectangle dest = (Rectangle){
+            .height = heightG*2.0f+40.0f,
+            .width = widthG*4.0f,
+            .x = position,
+            .y = player_posy+270.0f
+        };
         
-        // DrawTexturePro(tex->health_item,source2,dest2,(Vector2){0,0},0,WHITE);
-    //option selected jeta seta lal dekahbe 
-    Color startColor = (gs->menu_selection == 0) ? WHITE : DARKGRAY;
-    Color exitColor  = (gs->menu_selection == 1) ? WHITE : DARKGRAY;
+        DrawTexturePro(gs->gchunk[0].texture,source,dest,(Vector2){0,0},0,WHITE);
+        position+=widthG*4.0f;
+    }
+    DrawRectangle(0,0,s_width,s_height,GetColor(0x00000022));
+    DrawRectangle(s_width/2.0f-gs->logo.width/2.0f,150.0f,gs->logo.width,gs->logo.height,GetColor(0x00000044));
+    DrawTexture(gs->logo,s_width/2.0f-gs->logo.width/2.0f,150.0f,WHITE);
 
-    //selected thakle >.........<
+    // float widthB = tex->health_item.width;
+    // float heightB = tex->health_item.height;
+    // Rectangle source2 = (Rectangle){
+    //     .height = heightB,
+    //     .width = widthB,
+    //     .x = 2*widthB,
+    //     .y = 0
+    // };
+    // Rectangle dest2 = (Rectangle){
+    //     .height = heightB/2.0f-30,
+    //     .width = widthB/2.0f-30,
+    //     .x = player_posx+320.0f,
+    //     .y = player_posy+height*SPRITE_SCALE*1.8f-60
+    // };
+    
+    // DrawTexturePro(tex->health_item,source2,dest2,(Vector2){0,0},0,WHITE);
+
+    Color startColor   = (gs->menu_selection == 0) ? WHITE : DARKGRAY;
+    Color creditsColor = (gs->menu_selection == 1) ? WHITE : DARKGRAY;
+    Color exitColor    = (gs->menu_selection == 2) ? WHITE : DARKGRAY;
+
     const char* startText = (gs->menu_selection == 0) ? "> START GAME <" : "  START GAME  ";
-    int startWidth = MeasureText(startText, 60);
-    DrawTextEx(gs->cfonts.menu_font2,startText,(Vector2){700.0f, s_height / 2-50.0f}, 60,0,startColor);
+    DrawTextEx(gs->cfonts.menu_font2, startText, (Vector2){700.0f, s_height / 2 - 50.0f}, 60, 0, startColor);
 
-    //exit optn  >.......<
-    const char* exitText = (gs->menu_selection == 1) ? "> EXIT <" : "  EXIT  ";
-    int exitWidth = MeasureText(exitText, 60);
-    DrawTextEx(gs->cfonts.menu_font2,exitText, (Vector2){820.0f, s_height / 2 + 80}, 60, 0,exitColor);
+    const char* creditsText = (gs->menu_selection == 1) ? "> CREDITS <" : "  CREDITS  ";
+    DrawTextEx(gs->cfonts.menu_font2, creditsText, (Vector2){760.0f, s_height / 2 + 25.0f}, 60, 0, creditsColor);
+
+    const char* exitText = (gs->menu_selection == 2) ? "> EXIT <" : "  EXIT  ";
+    DrawTextEx(gs->cfonts.menu_font2, exitText, (Vector2){820.0f, s_height / 2 + 100.0f}, 60, 0, exitColor);
 }
-
 
 
 
@@ -685,4 +690,75 @@ void drawGameover(GS* gs){
     if ((int)(GetTime() * 2) % 2 == 0) {
         DrawTextEx(gs->cfonts.menu_font3, instruction, (Vector2){(s_width/2.0f) - (instSize.x/2.0f), s_height - 100}, 30, 0, LIGHTGRAY);
     }
+}
+
+
+
+void updateCredits(GS* gs) {
+    // esc ba enter chaple abar menu te ferot jabe
+    if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_BACKSPACE)) {
+        gs->currentscreen = MENU;
+        gs->menu_selection = 0;
+    }
+    updateParallax(gs, 5.0f); // background scroll korar jonno
+}
+
+void drawCredits(GS* gs, tex* textures) {
+    drawBackgroundMenu(gs);
+    DrawRectangle(0, 0, s_width, s_height, Fade(BLACK, 0.85f));
+
+    float centerX = s_width / 2.0f;
+
+    const char* title = "DEVELOPED BY";
+    Vector2 titleSize = MeasureTextEx(gs->cfonts.menu_font1, title, 90, 0);
+    DrawTextEx(gs->cfonts.menu_font1, title, (Vector2){centerX - (titleSize.x / 2.0f), 60}, 90, 0, RAYWHITE);
+
+    float leftCenter = centerX - 350.0f;
+    float rightCenter = centerX + 350.0f;
+    
+    
+    float photoY = 280.0f; 
+    float photoSize = 280.0f;
+
+    if (textures->rumman_photo.id != 0) {
+        Rectangle rummanSource = { 0.0f, 0.0f, (float)textures->rumman_photo.width, (float)textures->rumman_photo.height };
+        Rectangle rummanDest = { leftCenter - (photoSize / 2.0f), photoY, photoSize, photoSize };
+        DrawTexturePro(textures->rumman_photo, rummanSource, rummanDest, (Vector2){0,0}, 0.0f, WHITE);
+    }
+    Rectangle rummanBox = { leftCenter - (photoSize / 2.0f), photoY, photoSize, photoSize };
+    DrawRectangleLinesEx(rummanBox, 4.0f, LIGHTGRAY);
+
+    const char* name1 = "AHMED REZA RUMMAN";
+    Vector2 n1Size = MeasureTextEx(gs->cfonts.menu_font2, name1, 35, 0);
+    DrawTextEx(gs->cfonts.menu_font2, name1, (Vector2){leftCenter - (n1Size.x / 2.0f), photoY + photoSize + 20}, 35, 0, RAYWHITE);
+    
+    DrawText("ROLL: 2505011", leftCenter - 75, photoY + photoSize + 65, 22, LIGHTGRAY);
+
+    if (textures->sifat_photo.id != 0) {
+        Rectangle sifatSource = { 0.0f, 0.0f, (float)textures->sifat_photo.width, (float)textures->sifat_photo.height };
+        Rectangle sifatDest = { rightCenter - (photoSize / 2.0f), photoY, photoSize, photoSize };
+        DrawTexturePro(textures->sifat_photo, sifatSource, sifatDest, (Vector2){0,0}, 0.0f, WHITE);
+    }
+    Rectangle sifatBox = { rightCenter - (photoSize / 2.0f), photoY, photoSize, photoSize };
+    DrawRectangleLinesEx(sifatBox, 4.0f, LIGHTGRAY);
+
+    const char* name2 = "MD. SHAHRIAR SIFAT";
+    Vector2 n2Size = MeasureTextEx(gs->cfonts.menu_font2, name2, 35, 0);
+    DrawTextEx(gs->cfonts.menu_font2, name2, (Vector2){rightCenter - (n2Size.x / 2.0f), photoY + photoSize + 20}, 35, 0, RAYWHITE);
+    
+    DrawText("ROLL: 2505026", rightCenter - 75, photoY + photoSize + 65, 22, LIGHTGRAY);
+
+    float bottomY = s_height - 180.0f;
+    
+    const char* soundCredit = "Sound Credit : pixabay";
+    Vector2 scSize = MeasureTextEx(gs->cfonts.menu_font2, soundCredit, 28, 0);
+    DrawTextEx(gs->cfonts.menu_font2, soundCredit, (Vector2){centerX - (scSize.x / 2.0f), bottomY}, 28, 0, LIGHTGRAY);
+
+    const char* spriteCredit = "Sprite Credit : itch.io";
+    Vector2 spSize = MeasureTextEx(gs->cfonts.menu_font2, spriteCredit, 28, 0);
+    DrawTextEx(gs->cfonts.menu_font2, spriteCredit, (Vector2){centerX - (spSize.x / 2.0f), bottomY + 35}, 28, 0, LIGHTGRAY);
+
+    const char* back = "Press ESC or ENTER to return";
+    Vector2 backSize = MeasureTextEx(gs->cfonts.menu_font2, back, 22, 0);
+    DrawTextEx(gs->cfonts.menu_font2, back, (Vector2){centerX - (backSize.x / 2.0f), s_height - 50}, 22, 0, DARKGRAY);
 }
