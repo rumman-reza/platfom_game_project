@@ -73,7 +73,7 @@
 
 //bomb
 #define max_bombs 20
-#define bomb_damage 50.0f
+#define bomb_damage 30.0f
 #define bomb_width 80.0f  
 #define bomb_height 80.0f
 
@@ -133,5 +133,6 @@
 #define detail_cluster_spacing  50.0f
 #define detail_min_scale        1.8f
 #define detail_max_scale        3.0f
+#define skip_timer 2.0f
 
 #endif  

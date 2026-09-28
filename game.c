@@ -100,7 +100,20 @@
 
        }
       }  
-      if(gs->distance_traveled>4000 && gs->distance_traveled<4400) DrawTextEx(gs->cfonts.menu_font3, "!!!!DASH OVER THE GAPS!!!!", (Vector2){700, 100}, 60, 0,LIGHTGRAY);
+      if(gs->distance_traveled > 40000 && gs->distance_traveled < 41000){
+        const char* hint = "!!!! DASH OVER THE GAPS !!!!";
+        Vector2 size = MeasureTextEx(gs->cfonts.menu_font3, hint, 60, 0);
+
+        float screenLeft = gs->camera.target.x - gs->camera.offset.x;   // left edge of the screen in world coords
+        float x = screenLeft + s_width/2.0f - size.x/2.0f;
+
+        float d = gs->distance_traveled;
+        float alpha = 1.0f;
+        if(d < 4300)      alpha = (d - 4000.0f) / 300.0f;   // fade in
+        else if(d > 6700) alpha = (7000.0f - d) / 300.0f;   // fade out
+
+        DrawTextEx(gs->cfonts.menu_font3, hint, (Vector2){x, 100}, 60, 0, Fade(LIGHTGRAY, alpha));
+        }
 
     }
 
@@ -125,7 +138,7 @@
         gs->show_tutorial = true;
         load_audio(gs);                      
         PlayMusicStream(gs->audio.menuMusic);
-        
+        gs->skip_duration = skip_timer;
         //set player
         float scale = SPRITE_SCALE * 1.6f;
         float frameW = gs->player_animations[player_idle].frameWidth;   // 80
@@ -215,6 +228,8 @@
     }
 
     void updateGameplay(GS* gs,anim* anim,float dt){
+        Rectangle pr = getPlayerRect(gs);
+        gs->player.prevBottom = pr.y + pr.height;
         player_has_fallen(gs);
         playerDashUpdate(gs,dt);
         Gravity(gs,dt);
@@ -320,13 +335,25 @@ void restartGame(GS* gs) {
     gs->pgas.position = (Vector2){-200.0f, ground_y - gs->pgas.pgas_anim[0].height + 50.0f};
 
     gs->score = 0;
-    gs->distance_traveled = 0;
     gs->timer = 0.0f;
-
+    
     gs->last_bush_x = gs->next_spawn_point;
     gs->bushDecor_index = 0;
     gs->detailDecor_index = 0;
-   
+    
+    gs->starting_timer = STARTING_TIMER;   // otherwise the intro run only happens on the first game
+    gs->current_player_state = idle_player;
+    gs->player.invultimer = 0; gs->player.dashcooldowntimer = 0; gs->player.dashduration = 0;
+    gs->player.hitduration = 0; gs->player.hashitthiswing = false;
+    gs->spike_cooldown = 0; gs->pgas.attacktimer = 0;
+    
+    for(int i=0;i<max_bush_decor;i++)   gs->bushDecor[i].active = false;
+    for(int i=0;i<max_detail_decor;i++) gs->detailDecor[i].active = false;
+    for(int i=0;i<max_health_drops;i++) gs->healthDrops[i].active = false;
+    for(int i=0;i<max_explosions;i++)   gs->explosions[i].active = false;
+    for(int i=0;i<10;i++)               gs->floatTexts[i].active = false;
+    gs->player.facing_left = false;
+    gs->distance_traveled = 0;
     updateGround(gs);
 }
 
@@ -363,13 +390,13 @@ void updateMenu(GS* gs) {
     if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) {
         gs->menu_selection++;
         PlaySound(gs->audio.menu_select);
-        if (gs->menu_selection > 2) gs->menu_selection = 0; // 3 tar besi option nai tao 0 te chole jabe 
+        if (gs->menu_selection > 3) gs->menu_selection = 0; // 3 tar besi option nai tao 0 te chole jabe 
     }
     //up key te vice versa
     if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
         gs->menu_selection--;
         PlaySound(gs->audio.menu_select);
-        if (gs->menu_selection < 0) gs->menu_selection = 2;
+        if (gs->menu_selection < 0) gs->menu_selection = 3;
     }
 
     //enter key
@@ -383,8 +410,12 @@ void updateMenu(GS* gs) {
         else  if(gs->menu_selection==1){
             gs->currentscreen=CREDITS;
         }
+        else  if(gs->menu_selection==2){
+            gs->pressed_how_to_play = true;
+            gs->currentscreen=TUTORIAL;
+        }
 
-        else if (gs->menu_selection == 2) {
+        else if (gs->menu_selection == 3) {
             gs->quit_game = true;
         }
         
@@ -466,7 +497,8 @@ void drawMenu(GS* gs, tex* tex) {
 
     Color startColor   = (gs->menu_selection == 0) ? WHITE : DARKGRAY;
     Color creditsColor = (gs->menu_selection == 1) ? WHITE : DARKGRAY;
-    Color exitColor    = (gs->menu_selection == 2) ? WHITE : DARKGRAY;
+    Color tutorial_color = (gs->menu_selection == 2)? WHITE:DARKGRAY;
+    Color exitColor    = (gs->menu_selection == 3) ? WHITE : DARKGRAY;
 
     const char* startText = (gs->menu_selection == 0) ? "> START GAME <" : "  START GAME  ";
     DrawTextEx(gs->cfonts.menu_font2, startText, (Vector2){700.0f, s_height / 2 - 50.0f}, 60, 0, startColor);
@@ -474,8 +506,11 @@ void drawMenu(GS* gs, tex* tex) {
     const char* creditsText = (gs->menu_selection == 1) ? "> CREDITS <" : "  CREDITS  ";
     DrawTextEx(gs->cfonts.menu_font2, creditsText, (Vector2){760.0f, s_height / 2 + 25.0f}, 60, 0, creditsColor);
 
-    const char* exitText = (gs->menu_selection == 2) ? "> EXIT <" : "  EXIT  ";
-    DrawTextEx(gs->cfonts.menu_font2, exitText, (Vector2){820.0f, s_height / 2 + 100.0f}, 60, 0, exitColor);
+    const char* tutorialText = (gs->menu_selection == 2) ? "> TUTORIAL <" : "  TUTORIAL ";
+    DrawTextEx(gs->cfonts.menu_font2, tutorialText, (Vector2){760.0f, s_height / 2 + 100.0f}, 60, 0, tutorial_color);
+
+    const char* exitText = (gs->menu_selection == 3) ? "> EXIT <" : "  EXIT  ";
+    DrawTextEx(gs->cfonts.menu_font2, exitText, (Vector2){820.0f, s_height / 2 + 175.0f}, 60, 0, exitColor);
 }
 
 
@@ -711,13 +746,14 @@ void drawCredits(GS* gs, tex* textures) {
 
     const char* title = "DEVELOPED BY";
     Vector2 titleSize = MeasureTextEx(gs->cfonts.menu_font1, title, 90, 0);
-    DrawTextEx(gs->cfonts.menu_font1, title, (Vector2){centerX - (titleSize.x / 2.0f), 60}, 90, 0, RAYWHITE);
+    DrawTextEx(gs->cfonts.menu_font1, title, (Vector2){centerX - (titleSize.x / 2.0f), 200}, 90, 0, RAYWHITE);
 
     float leftCenter = centerX - 350.0f;
     float rightCenter = centerX + 350.0f;
     
+    DrawTextEx(gs->cfonts.menu_font3, "SUPERVISOR - AMM sir", (Vector2){centerX - (titleSize.x / 2.0f)+40, 60}, 60, 0, RAYWHITE);
     
-    float photoY = 280.0f; 
+    float photoY = 380.0f; 
     float photoSize = 280.0f;
 
     if (textures->rumman_photo.id != 0) {

@@ -36,12 +36,12 @@ static const char* tutorialPages[] = {
     "       healths randomly spawn on platforms\n\n\n\n\n\n\n\n",
 
         "                   HEALTH     \n\n"
-    "                  --------\n\n\n\n"
+    "                  ----------\n\n\n\n"
     "      Enemies also drop health when killed\n\n\n\n\n",
 
 
    "                    POISON GAS\n\n" 
-   "                   ------------\n\n\n"
+   "                   -------------\n\n\n"
    "AVOID THE POISION GAS CHASING YOU\n\n\n"
    "Getting close or staying in that will cause DAMAGE\n\n",
 
@@ -54,9 +54,9 @@ static const char* tutorialPages[] = {
    "         USE DASH (LEFT SHIFT BUTTON)\n\n"
    "      WHEN THE GAP IS TOO BIG TO JUMP OVER",
 
-   "            USE THE TIPS CORRECTLY\n\n\n"
-   "                    ENJOY!!!!!\n\n\n\n\n\n\n"
-    "                 OR SHOULD YOU?"
+   "            USE THE TIPS CORRECTLY\n\n\n\n\n\n\n\n\n"
+   "                 !!!!! ENJOY !!!!!\n\n\n\n\n\n\n"
+    "                OR SHOULD YOU?"
 };
 static const int tutorialPageCount = sizeof(tutorialPages)/sizeof(tutorialPages[0]);
 
@@ -74,7 +74,19 @@ void initTutorial(GS* gs){
 
 void updateTutorial(GS* gs, float dt){
     int textLen = (int)strlen(tutorialPages[gs->tutorial_page]);
-
+    
+       if(!gs->pressed_how_to_play){
+       if(IsKeyDown(KEY_ENTER)){
+           gs->skip_pressed_timer += dt;
+           if(gs->skip_pressed_timer >= gs->skip_duration){
+               gs->show_tutorial = false;
+               gs->skip_pressed_timer = 0;
+               gs->currentscreen = GAME;
+               return;
+           }
+       } else gs->skip_pressed_timer = 0;
+   }
+    
     switch(gs->tutorial_state){
         case tut_fadein:
             gs->tutorial_alpha += tutorial_fade_speed*dt;
@@ -112,7 +124,8 @@ void updateTutorial(GS* gs, float dt){
                     startPage(gs, gs->tutorial_page + 1);
                 } else {
                     gs->show_tutorial = false;
-                    gs->currentscreen = GAME;
+                    if(gs->pressed_how_to_play) {gs->currentscreen = MENU; gs->pressed_how_to_play = false;}
+                    else gs->currentscreen = GAME;
                     gs->show_tutorial = false;
                 }
             }
@@ -125,7 +138,7 @@ void updateTutorial(GS* gs, float dt){
 void drawTutorial(GS* gs,tex* tex){
     drawBackgroundMenu(gs);
     DrawRectangle(0,0,s_width,s_height,GetColor(0x000000AA));
-
+    DrawRectangle(0,0,s_width,s_height,GetColor(0x00000088));
     const char* text = tutorialPages[gs->tutorial_page];
     int n = gs->tutorial_charsShown;
 
@@ -158,7 +171,7 @@ void drawTutorial(GS* gs,tex* tex){
     }
 
     if(gs->tutorial_state == tut_waiting){
-        const char* prompt = (gs->tutorial_page+1 < tutorialPageCount) ? "Press ENTER to continue" : "Press ENTER to start";
+        const char* prompt = (gs->tutorial_page+1 < tutorialPageCount) ? "Press ENTER to continue " : "Press ENTER to start";
         if((int)(GetTime()*2) % 2 == 0){
             Vector2 psize = MeasureTextEx(gs->cfonts.menu_font3, prompt, 20, 0);
             DrawTextEx(gs->cfonts.menu_font3, prompt, (Vector2){700, s_height-100}, 40, 0, Fade(LIGHTGRAY, gs->tutorial_alpha));
@@ -191,7 +204,7 @@ void drawTutorial(GS* gs,tex* tex){
         float height3  = tex->enemy_attack.height;
         if(gs->tutorial_state == tut_waiting) DrawTexturePro(
             tex->enemy_attack,(Rectangle){.x = 5*width3,.y=0,.height = height3, .width = width3}, 
-            (Rectangle){.x = player_posx+200.0f,.y = player_posy-220.0f,.width = width3*SPRITE_SCALE*2.5f, .height = height3*SPRITE_SCALE*2.5f},
+            (Rectangle){.x = player_posx+160.0f,.y = player_posy-240.0f,.width = width3*SPRITE_SCALE*2.5f, .height = height3*SPRITE_SCALE*2.5f},
             (Vector2){0,0},0,WHITE
         );
     }
@@ -201,8 +214,8 @@ void drawTutorial(GS* gs,tex* tex){
         float width3 = tex->platform_health_drop.width;
         float height3  = tex->platform_health_drop.height;
         if(gs->tutorial_state == tut_waiting) DrawTexturePro(
-            tex->platform_health_drop,(Rectangle){.x = 5*width3,.y=0,.height = height3, .width = width3}, 
-            (Rectangle){.x = player_posx,.y = player_posy-220.0f,.width = width3/2.0f, .height = height3/2.0f},
+            tex->platform_health_drop,(Rectangle){.x = 0,.y=0,.height = height3, .width = width3}, 
+            (Rectangle){.x = player_posx-30,.y = player_posy-230.0f,.width = width3/1.6f, .height = height3/1.6f},
             (Vector2){0,0},0,WHITE
         );
     }
@@ -213,7 +226,7 @@ void drawTutorial(GS* gs,tex* tex){
         float height3  = tex->enemy_health_drop.height;
         if(gs->tutorial_state == tut_waiting) DrawTexturePro(
             tex->enemy_health_drop,(Rectangle){.x = 5*width3,.y=0,.height = height3, .width = width3}, 
-            (Rectangle){.x = player_posx+150,.y = player_posy-220.0f,.width = width3, .height = height3},
+            (Rectangle){.x = player_posx+120,.y = player_posy-240.0f,.width = width3, .height = height3},
             (Vector2){0,0},0,WHITE
         );
     }
@@ -224,7 +237,7 @@ void drawTutorial(GS* gs,tex* tex){
         float height3  = tex->pgas.height;
         if(gs->tutorial_state == tut_waiting) DrawTexturePro(
             tex->pgas,(Rectangle){.x = 5*width3,.y=0,.height = height3, .width = width3}, 
-            (Rectangle){.x = player_posx,.y = player_posy-220.0f,.width = width3/2.0f, .height = height3/2.0f},
+            (Rectangle){.x = player_posx-60,.y = player_posy-260.0f,.width = width3/2.0f, .height = height3/2.0f},
             (Vector2){0,0},0,WHITE
         );
     }
@@ -235,7 +248,7 @@ void drawTutorial(GS* gs,tex* tex){
         float height3  = tex->Large_gap.height;
         if(gs->tutorial_state == tut_waiting) DrawTexturePro(
             tex->Large_gap,(Rectangle){.x = 5*width3,.y=0,.height = height3, .width = width3}, 
-            (Rectangle){.x = player_posx,.y = player_posy-220.0f,.width = width3/2.0f, .height = height3/2.0f},
+            (Rectangle){.x = player_posx-60,.y = player_posy-200.0f,.width = width3/2.0f, .height = height3/2.0f},
             (Vector2){0,0},0,WHITE
         );
     }
@@ -246,7 +259,7 @@ void drawTutorial(GS* gs,tex* tex){
         float height3  = tex->Large_gap2.height;
         if(gs->tutorial_state == tut_waiting) DrawTexturePro(
             tex->Large_gap2,(Rectangle){.x = 5*width3,.y=0,.height = height3, .width = width3}, 
-            (Rectangle){.x = player_posx,.y = player_posy-220.0f,.width = width3/2.0f, .height = height3/2.0f},
+            (Rectangle){.x = player_posx-60,.y = player_posy-200.0f,.width = width3/2.0f, .height = height3/2.0f},
             (Vector2){0,0},0,WHITE
         );
     }

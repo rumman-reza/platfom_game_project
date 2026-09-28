@@ -12,9 +12,9 @@
 #include"tutorial.h"
 int main(){
     
-    InitWindow(1920,1080,"Epic Adventure");
+    InitWindow(1920,1080,"BONEGROVE");
     SetTargetFPS(60);
-    ToggleBorderlessWindowed();
+    // ToggleBorderlessWindowed();
     // structure gulo define kora and 0 diye initialize kora
     InitAudioDevice();
     GS gs={0};
@@ -43,7 +43,7 @@ int main(){
             drawTutorial(&gs,&tex);
         }
         else if (gs.currentscreen == GAME) {
-            BeginMode2D(gs.camera);
+            BeginMode2D(gs.camera); 
             drawGame(&gs, &tex);
             
             EndMode2D();

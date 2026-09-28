@@ -60,6 +60,7 @@
         float health;  
         float maxHealth;   //maximum health koto
         bool isDead;
+        float prevBottom;   // body bottom at the start of this frame
 
     }Player;
 
@@ -378,6 +379,10 @@ typedef struct animation{
         ForegroundDecor detailDecor[max_detail_decor];
         int detailDecor_index;
         float draw_gap;
+
+        bool pressed_how_to_play;
+        float skip_duration;
+        float skip_pressed_timer;
     }GS;
 
 

@@ -277,16 +277,22 @@ void checkCeilingCollision(GS* gs){
 void checkWallCollision(GS* gs){
     Rectangle leftRect  = getLeftCheckRec(gs);
     Rectangle rightRect = getRightCheckRec(gs);
+
     for(int i=0;i<MaxChunkNum;i++){
         Rectangle chunk = gs->gchunk[i].groundChunkRect;
+        if(chunk.width <= 0) continue;
+
+        if(gs->player.prevBottom <= chunk.y + 1.0f) continue;
 
         if(gs->player.velocity.x < 0 && CheckCollisionRecs(leftRect, chunk)){
             gs->player.position.x = chunk.x + chunk.width - gs->player.collisionOffset.x;
             gs->player.velocity.x = 0;
+            break;
         }
         if(gs->player.velocity.x > 0 && CheckCollisionRecs(rightRect, chunk)){
             gs->player.position.x = chunk.x - gs->player.width - gs->player.collisionOffset.x;
             gs->player.velocity.x = 0;
+            break;
         }
     }
 }
