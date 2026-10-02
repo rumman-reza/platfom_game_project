@@ -410,7 +410,6 @@ static void drawFogEdgeBand(float x, float w){
     Color solid = (Color){fog_color_r, fog_color_g, fog_color_b, fog_base_alpha};
     Color clear = (Color){fog_color_r, fog_color_g, fog_color_b, 0};
 
-    // corners: top-left, bottom-left, top-right, bottom-right
     DrawRectangleGradientEx((Rectangle){x, topY, w, fog_vfade}, clear, solid, clear, clear);
     DrawRectangleGradientH((int)x,(int)midY1,(int)w,(int)(midY2-midY1), solid, clear);
     DrawRectangleGradientEx((Rectangle){x, midY2, w, fog_vfade}, solid, clear, clear, clear);

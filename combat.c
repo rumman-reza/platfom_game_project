@@ -89,10 +89,9 @@ void DamageFromBombs(GS* gs, float dt) {
                 b->isactive = false;
                 spawnExplosion(gs, bombCenter);
                 PlaySound(gs->audio.explosion);
-                damagePlayer(gs, bomb_damage);   // player is still in range at this instant, by definition
+                damagePlayer(gs, bomb_damage);  
             }
         } else {
-            // player got out before it went off: disarm, so re-entering later starts a fresh fuse
             b->armed = false;
             b->fuseTimer = 0.0f;
         }

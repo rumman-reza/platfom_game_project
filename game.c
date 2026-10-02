@@ -163,8 +163,7 @@
         gs->camera.offset = (Vector2){s_width/2.0f-200.0f,0.0f};
         gs->camera.rotation = 0.0f;
         gs->camera.zoom = 1.0f;
-
-        // float player_center_x = gs->player.position.x + gs->player.collisionOffset.x + gs->player.width / 2.0f;
+        
         gs->camera.target = (Vector2){0.0f,0.0f};
         gs->last_camera_x = gs->camera.target.x;
         //heath function er variable gulo
@@ -751,7 +750,7 @@ void drawCredits(GS* gs, tex* textures) {
     float leftCenter = centerX - 350.0f;
     float rightCenter = centerX + 350.0f;
     
-    DrawTextEx(gs->cfonts.menu_font3, "SUPERVISOR - AMM sir", (Vector2){centerX - (titleSize.x / 2.0f)+40, 60}, 60, 0, RAYWHITE);
+    DrawTextEx(gs->cfonts.menu_font3, "SUPERVISOR - Al Muhit Muhtadi Sir", (Vector2){centerX - (titleSize.x / 2.0f)-100, 60}, 60, 0, RAYWHITE);
     
     float photoY = 380.0f; 
     float photoSize = 280.0f;
